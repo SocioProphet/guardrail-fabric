@@ -1,0 +1,20 @@
+{
+  "apiVersion": "guardrail.socioprophet.dev/v1",
+  "kind": "GuardrailInput",
+  "metadata": {
+    "inputId": "guardrail-input-demo-001",
+    "requestId": "route-request-demo-001",
+    "actorRef": "agent://socioprophet/demo-analyst"
+  },
+  "spec": {
+    "surfaceRef": "surface://language/summarization",
+    "task": "summarize",
+    "contentClass": "business-document",
+    "detectedSignals": [
+      "claims-present",
+      "citation-required"
+    ],
+    "policyRef": "guardrail://fabric/default-safe-text-v1",
+    "evidenceRef": "evidence://guardrail-fabric/demo/input-001"
+  }
+}
