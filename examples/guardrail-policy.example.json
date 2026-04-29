@@ -1,0 +1,30 @@
+{
+  "apiVersion": "guardrail.socioprophet.dev/v1",
+  "kind": "GuardrailPolicy",
+  "metadata": {
+    "policyRef": "guardrail://fabric/default-safe-text-v1",
+    "version": "0.1.0"
+  },
+  "spec": {
+    "surfaceRefs": ["surface://language/summarization"],
+    "sensitivityPolicy": {
+      "pii": "requires-review",
+      "secrets": "deny",
+      "privateUserData": "requires-review"
+    },
+    "promptPolicy": {
+      "jailbreak": "deny",
+      "toolOverride": "deny",
+      "policyBypass": "deny"
+    },
+    "sourcePolicy": {
+      "requiresCitationForClaims": true,
+      "minimumSourceTrust": "medium"
+    },
+    "outputPolicy": {
+      "redactDetectedSecrets": true,
+      "maskDetectedPii": true,
+      "requireEvidenceRef": true
+    }
+  }
+}
