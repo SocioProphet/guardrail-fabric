@@ -1,0 +1,24 @@
+{
+  "apiVersion": "guardrail.socioprophet.dev/v1",
+  "kind": "GuardrailDecision",
+  "metadata": {
+    "decisionId": "guardrail-decision-demo-001",
+    "inputId": "guardrail-input-demo-001",
+    "createdAt": "2026-04-29T00:00:00Z"
+  },
+  "spec": {
+    "decisionStatus": "allow",
+    "policyRef": "guardrail://fabric/default-safe-text-v1",
+    "surfaceRef": "surface://language/summarization",
+    "reasonCodes": [
+      "surface-covered",
+      "no-deny-signals",
+      "citation-required",
+      "evidence-ref-present"
+    ],
+    "redactionHints": [],
+    "maskingHints": [],
+    "evidenceRef": "evidence://guardrail-fabric/demo/input-001",
+    "ledgerRef": "ledger://model-governance/demo/guardrail-decision-001"
+  }
+}
