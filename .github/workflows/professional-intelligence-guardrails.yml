@@ -1,0 +1,30 @@
+name: professional-intelligence-guardrails
+
+on:
+  pull_request:
+    paths:
+      - "schemas/professional-intelligence-guardrail-pack.schema.json"
+      - "examples/professional-intelligence/guardrail-pack.example.json"
+      - "scripts/validate_professional_intelligence_guardrails.py"
+      - ".github/workflows/professional-intelligence-guardrails.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "schemas/professional-intelligence-guardrail-pack.schema.json"
+      - "examples/professional-intelligence/guardrail-pack.example.json"
+      - "scripts/validate_professional_intelligence_guardrails.py"
+      - ".github/workflows/professional-intelligence-guardrails.yml"
+
+jobs:
+  validate-guardrails:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install validation dependency
+        run: python -m pip install jsonschema
+      - name: Validate Professional Intelligence guardrail pack
+        run: python scripts/validate_professional_intelligence_guardrails.py

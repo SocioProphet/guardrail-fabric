@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://socioprophet.io/schemas/guardrail-fabric/professional-intelligence-guardrail-pack.schema.json",
+  "title": "ProfessionalIntelligenceGuardrailPack",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "packId",
+    "scope",
+    "rules",
+    "evidenceRefs"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "v0.1" },
+    "packId": { "type": "string", "minLength": 1 },
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["workroomRef", "playbookId", "appliesTo"],
+      "properties": {
+        "workroomRef": { "type": "string", "minLength": 1 },
+        "playbookId": { "type": "string", "minLength": 1 },
+        "appliesTo": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "rules": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["ruleId", "description", "enforcement", "condition", "failureAction"],
+        "properties": {
+          "ruleId": { "type": "string", "minLength": 1 },
+          "description": { "type": "string", "minLength": 1 },
+          "enforcement": { "type": "string", "enum": ["block", "escalate", "warn", "record"] },
+          "condition": { "type": "string", "minLength": 1 },
+          "failureAction": { "type": "string", "minLength": 1 },
+          "requiredRefs": { "type": "array", "items": { "type": "string" } },
+          "evidenceRequired": { "type": "boolean" }
+        }
+      }
+    },
+    "evidenceRefs": { "type": "array", "items": { "type": "string" } }
+  }
+}
