@@ -1,0 +1,85 @@
+{
+  "schemaVersion": "v0.1",
+  "packId": "guardrail-pack://professional-intelligence/gate-3-demo",
+  "scope": {
+    "workroomRef": "workroom://workroom-demo-0001",
+    "playbookId": "client-opportunity-review",
+    "appliesTo": [
+      "agent://professional-intelligence/opportunity-review-agent",
+      "agent://professional-intelligence/relationship-agent",
+      "agent://professional-intelligence/policy-review-agent",
+      "agent://professional-intelligence/workspace-setup-agent"
+    ]
+  },
+  "rules": [
+    {
+      "ruleId": "source-citation-required",
+      "description": "Every generated packet or summary must cite source or search packet references.",
+      "enforcement": "block",
+      "condition": "output lacks citationRefs or sourceRefs",
+      "failureAction": "block output release and request source-backed regeneration",
+      "requiredRefs": [
+        "search-packet://pi-demo-0001"
+      ],
+      "evidenceRequired": true
+    },
+    {
+      "ruleId": "policy-decision-required",
+      "description": "Policy-sensitive workflow steps must reference a Policy Fabric decision.",
+      "enforcement": "block",
+      "condition": "policyRequired is true and policyDecisionRefs is empty",
+      "failureAction": "block workflow step and route to policy-review-agent",
+      "requiredRefs": [
+        "policy-decision://ppd-review-0001"
+      ],
+      "evidenceRequired": true
+    },
+    {
+      "ruleId": "workroom-scope-required",
+      "description": "Retrieval, memory, and output must remain scoped to the active Professional Workroom.",
+      "enforcement": "block",
+      "condition": "context, memory, or output references a different workroom scope",
+      "failureAction": "block the action and emit workroom-scope evidence",
+      "requiredRefs": [
+        "workroom://workroom-demo-0001"
+      ],
+      "evidenceRequired": true
+    },
+    {
+      "ruleId": "tool-grant-required",
+      "description": "Agent tool use must match an active Agent Registry tool grant.",
+      "enforcement": "block",
+      "condition": "toolRef is not covered by an activeToolGrantRef",
+      "failureAction": "deny tool call and emit authority evidence",
+      "requiredRefs": [
+        "session://professional-intelligence/demo-001"
+      ],
+      "evidenceRequired": true
+    },
+    {
+      "ruleId": "evidence-required",
+      "description": "Every material workflow step must emit or reference evidence.",
+      "enforcement": "block",
+      "condition": "material step lacks evidenceRefs",
+      "failureAction": "block demo acceptance until evidence is present",
+      "requiredRefs": [
+        "evidence://query/pi-demo-0001/context"
+      ],
+      "evidenceRequired": true
+    },
+    {
+      "ruleId": "low-confidence-escalation",
+      "description": "Low-confidence or incomplete context must escalate to human review.",
+      "enforcement": "escalate",
+      "condition": "confidence is below threshold or required context is missing",
+      "failureAction": "route to human review and mark the workroom in review state",
+      "requiredRefs": [
+        "workroom://workroom-demo-0001"
+      ],
+      "evidenceRequired": true
+    }
+  ],
+  "evidenceRefs": [
+    "evidence://guardrail-fabric/professional-intelligence/gate-3-demo"
+  ]
+}
