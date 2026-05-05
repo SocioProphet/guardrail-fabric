@@ -4,16 +4,17 @@ Reusable guardrail fabric for SocioProphet models, agents, tools, RAG packages, 
 
 ## SourceOS Agent Reliability Control Plane
 
-This repository now owns the deterministic guardrail layer for the SourceOS Agent Reliability Control Plane.
+This repository owns the deterministic guardrail layer for the SourceOS Agent Reliability Control Plane.
 
-The first implemented slice provides:
+The current implemented slice provides:
 
 - `sourceos.guardrail.decision.v0.1` policy decision ABI
 - Python dataclasses and enums for decisions, evidence, effects, severity, scope, and action class
 - local JSONL decision logging at `.sourceos/logs/guardrail-decisions.jsonl`
-- a minimal policy simulation CLI
+- a policy simulation CLI
 - fail-closed behavior for oversized payloads and required policy-load failures
 - JSON Schema for the decision artifact
+- baseline deterministic policy pack for shell, Git, secrets, package, infrastructure, and database safety
 - CI-backed tests across Python 3.10, 3.11, and 3.12
 
 ## Install locally
@@ -48,6 +49,52 @@ The log is written to:
 
 ```text
 .sourceos/logs/guardrail-decisions.jsonl
+```
+
+## Evaluate baseline policies
+
+Use `--baseline` to run the built-in SourceOS baseline policy pack.
+
+Safe read-only Git command:
+
+```bash
+guardrail-fabric \
+  --baseline \
+  --tool Bash \
+  --action-class shell \
+  --tool-input '{"command":"git status"}' \
+  --branch main
+```
+
+Blocked privilege escalation:
+
+```bash
+guardrail-fabric \
+  --baseline \
+  --tool Bash \
+  --action-class shell \
+  --tool-input '{"command":"sudo rm -rf /tmp/example"}'
+```
+
+Blocked protected-branch mutation:
+
+```bash
+guardrail-fabric \
+  --baseline \
+  --tool Bash \
+  --action-class shell \
+  --tool-input '{"command":"git commit -m test"}' \
+  --branch main
+```
+
+Escalated infrastructure mutation:
+
+```bash
+guardrail-fabric \
+  --baseline \
+  --tool Bash \
+  --action-class shell \
+  --tool-input '{"command":"kubectl delete pod bad-pod"}'
 ```
 
 ## Fail-closed checks
@@ -85,8 +132,9 @@ pytest -q
 
 ## Next implementation slices
 
-1. Baseline policy pack: shell, Git, secrets, package managers, infra, database, and anti-tamper.
-2. Agent hook adapters: Claude Code, Codex, Cursor, Gemini CLI, OpenCode, and AgentPlane-native execution.
-3. Stop-gate integration with AgentPlane evidence artifacts.
-4. Policy inheritance integration with PolicyFabric.
-5. Local session review integration with TurtleTerm and SocioSphere.
+1. Improve policy engine ordering and accumulate multiple instruct/allow-with-context decisions.
+2. Add anti-tamper policies for guardrail config, CI, evidence logs, branch protection, and AgentPlane stop gates.
+3. Add agent hook adapters: Claude Code, Codex, Cursor, Gemini CLI, OpenCode, and AgentPlane-native execution.
+4. Add stop-gate integration with AgentPlane evidence artifacts.
+5. Add PolicyFabric inheritance and signed break-glass integration.
+6. Add TurtleTerm and SocioSphere local session review surfaces.
