@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.socioprophet.org/sourceos/guardrail/sourceos.guardrail.decision.v0.1.schema.json",
+  "title": "SourceOS Guardrail Policy Decision v0.1",
+  "type": "object",
+  "required": [
+    "schema",
+    "decisionId",
+    "timestamp",
+    "policyId",
+    "policyVersion",
+    "scope",
+    "severity",
+    "decision",
+    "reason",
+    "remediation",
+    "evidence",
+    "effects"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema": { "const": "sourceos.guardrail.decision.v0.1" },
+    "decisionId": { "type": "string", "minLength": 1 },
+    "timestamp": { "type": "string" },
+    "policyId": { "type": "string", "minLength": 1 },
+    "policyVersion": { "type": "string", "minLength": 1 },
+    "policyHash": { "type": ["string", "null"] },
+    "scope": { "enum": ["user", "local", "repo", "org", "enterprise", "runtime"] },
+    "severity": { "enum": ["info", "low", "medium", "high", "critical"] },
+    "decision": { "enum": ["allow", "allow_with_context", "instruct", "deny", "redact", "escalate", "quarantine", "defer"] },
+    "reason": { "type": "string", "minLength": 1 },
+    "remediation": { "type": "string", "minLength": 1 },
+    "evidence": {
+      "type": "object",
+      "required": ["actionClass"],
+      "additionalProperties": true,
+      "properties": {
+        "repo": { "type": ["string", "null"] },
+        "branch": { "type": ["string", "null"] },
+        "commit": { "type": ["string", "null"] },
+        "cwd": { "type": ["string", "null"] },
+        "tool": { "type": ["string", "null"] },
+        "actionClass": { "enum": ["shell", "filesystem", "git", "network", "model", "browser", "infra", "database", "package", "runtime", "unknown"] },
+        "inputDigest": { "type": ["string", "null"] },
+        "outputDigest": { "type": ["string", "null"] },
+        "sessionId": { "type": ["string", "null"] },
+        "agentId": { "type": ["string", "null"] },
+        "taskId": { "type": ["string", "null"] }
+      }
+    },
+    "effects": {
+      "type": "object",
+      "required": ["agentMayContinue", "requiresHumanApproval", "redacted", "logsRequired", "tamperSealRequired"],
+      "additionalProperties": false,
+      "properties": {
+        "agentMayContinue": { "type": "boolean" },
+        "requiresHumanApproval": { "type": "boolean" },
+        "redacted": { "type": "boolean" },
+        "logsRequired": { "type": "boolean" },
+        "tamperSealRequired": { "type": "boolean" }
+      }
+    }
+  }
+}
