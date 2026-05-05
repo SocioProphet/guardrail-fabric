@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "guardrail-fabric"
+version = "0.1.0"
+description = "SourceOS guardrail decision ABI, local evidence logging, and policy simulation substrate."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [
+  { name = "SocioProphet" }
+]
+keywords = [
+  "sourceos",
+  "agents",
+  "guardrails",
+  "policy",
+  "evidence",
+  "agentplane"
+]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12"
+]
+
+[project.scripts]
+guardrail-fabric = "guardrail_fabric.simulate:main"
+
+[tool.setuptools.packages.find]
+include = ["guardrail_fabric*"]
+
+[tool.setuptools.package-data]
+guardrail_fabric = ["py.typed"]
