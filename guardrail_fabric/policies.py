@@ -16,7 +16,6 @@ from .decision import (
     ActionClass,
     Decision,
     Evidence,
-    Effects,
     PolicyDecision,
     Scope,
     Severity,
@@ -44,10 +43,22 @@ CONNECTION_STRING_RE = re.compile(r"(?:postgresql|postgres|mysql|mongodb(?:\+srv
 
 ENV_FILE_RE = re.compile(r"(?:^|[\s/\\])\.env(?:[\s.]|$)")
 SECRET_FILE_RE = re.compile(r"(?:^|[\s/\\])(?:id_rsa|credentials)(?:$|[\s/\\])|\.(?:pem|key|p12|pfx)(?:$|\s)", re.I)
+EVIDENCE_PATH_RE = re.compile(
+    r"(?:^|[\s/\\])(?:\.sourceos[/\\](?:logs|attestations)(?:$|[\s/\\])|guardrail-decisions\.jsonl|tool-events\.jsonl|redactions\.jsonl|human-overrides\.jsonl)",
+    re.I,
+)
+CONTROL_PATH_RE = re.compile(
+    r"(?:^|[\s/\\])(?:\.sourceos[/\\](?:policies|workflows)(?:$|[\s/\\])|\.sourceos[/\\](?:agentplane|runtime)\.json|\.github[/\\]workflows(?:$|[\s/\\])|\.github[/\\]CODEOWNERS|AGENTS\.md|SOURCEOS\.md)",
+    re.I,
+)
+WRITE_REDIRECT_RE = re.compile(r">>|>")
 
 INFRA_TOOLS = {"kubectl", "terraform", "tofu", "aws", "gcloud", "az", "helm"}
 DB_TOOLS = {"psql", "mysql", "sqlite3", "pgcli", "clickhouse-client"}
 PACKAGE_TOOLS = {"npm", "pnpm", "yarn", "bun", "pip", "pip3", "uv", "poetry", "cargo", "gem", "twine"}
+MUTATING_FILE_TOOLS = {"Write", "Edit", "MultiEdit", "Delete"}
+EVIDENCE_MUTATING_COMMANDS = {"rm", "mv", "truncate", "shred"}
+CONTROL_MUTATING_COMMANDS = {"rm", "mv", "sed", "tee", "touch", "chmod", "chown", "truncate", "shred"}
 
 
 @dataclass(frozen=True)
@@ -151,6 +162,48 @@ def output_text(ctx: PolicyContext) -> str:
     return str(ctx.tool_output)
 
 
+def surface_text(ctx: PolicyContext) -> str:
+    return f"{ctx.file_path} {ctx.command}"
+
+
+def policy_anti_tamper(ctx: PolicyContext) -> PolicyDecision | None:
+    surface = surface_text(ctx)
+    if not surface.strip():
+        return None
+
+    command = ctx.command.lower()
+    first = first_command_token(command)
+    mutating_file_tool = ctx.tool in MUTATING_FILE_TOOLS
+    evidence_mutation = mutating_file_tool or first in EVIDENCE_MUTATING_COMMANDS or WRITE_REDIRECT_RE.search(command)
+    control_mutation = mutating_file_tool or first in CONTROL_MUTATING_COMMANDS or WRITE_REDIRECT_RE.search(command)
+
+    if EVIDENCE_PATH_RE.search(surface) and evidence_mutation:
+        return _decision(
+            ctx,
+            policy_id="sourceos/anti-tamper/block-evidence-mutation",
+            decision=Decision.DENY,
+            severity=Severity.CRITICAL,
+            reason="The action attempts to mutate SourceOS guardrail evidence, logs, or attestations.",
+            remediation="Do not edit or delete evidence in-place. Create a superseding correction artifact or request a signed human break-glass override.",
+            action_class=ActionClass.FILESYSTEM,
+            scope=Scope.RUNTIME,
+        )
+
+    if CONTROL_PATH_RE.search(surface) and control_mutation:
+        return _decision(
+            ctx,
+            policy_id="sourceos/anti-tamper/escalate-control-surface-change",
+            decision=Decision.ESCALATE,
+            severity=Severity.HIGH,
+            reason="The action attempts to mutate a guardrail, workflow, CI, AgentPlane, or repo-local operating contract control surface.",
+            remediation="Open a reviewable PR with the proposed control-plane change and request human approval before applying it.",
+            action_class=ActionClass.FILESYSTEM,
+            scope=Scope.REPO,
+        )
+
+    return None
+
+
 def policy_shell_operator_injection(ctx: PolicyContext) -> PolicyDecision | None:
     if ctx.tool != "Bash" or not ctx.command:
         return None
@@ -205,9 +258,7 @@ def policy_block_download_pipe_shell(ctx: PolicyContext) -> PolicyDecision | Non
 
 
 def policy_block_secret_file_access(ctx: PolicyContext) -> PolicyDecision | None:
-    path = ctx.file_path
-    command = ctx.command
-    combined = f"{path} {command}"
+    combined = surface_text(ctx)
     if not combined.strip():
         return None
     if ENV_FILE_RE.search(combined) or SECRET_FILE_RE.search(combined):
@@ -430,11 +481,12 @@ def policy_database_destructive_sql(ctx: PolicyContext) -> PolicyDecision | None
 
 def baseline_policies() -> list[BaselinePolicy]:
     return [
+        BaselinePolicy("sourceos/anti-tamper/block-evidence-mutation", "Block mutation of guardrail evidence and attestations.", policy_anti_tamper),
+        BaselinePolicy("sourceos/anti-tamper/escalate-control-surface-change", "Escalate changes to policy, workflow, CI, and operating contracts.", policy_anti_tamper),
         BaselinePolicy("sourceos/shell/block-privilege-escalation", "Block privilege escalation.", policy_block_privilege_escalation),
         BaselinePolicy("sourceos/shell/block-download-pipe-exec", "Block downloaded content piped to execution.", policy_block_download_pipe_shell),
         BaselinePolicy("sourceos/secrets/block-secret-file-access", "Block .env and secret-adjacent file access.", policy_block_secret_file_access),
         BaselinePolicy("sourceos/secrets/block-environment-dump", "Block broad environment dumps.", policy_block_environment_dump),
-        BaselinePolicy("sourceos/secrets/block-env-var-echo", "Block direct environment-variable echo.", policy_block_environment_dump),
         BaselinePolicy("sourceos/secrets/redact-secret-output", "Redact secret-bearing outputs.", policy_redact_secret_output),
         BaselinePolicy("sourceos/git/block-protected-branch-mutation", "Block mutation on protected branches.", policy_git_protected_branch),
         BaselinePolicy("sourceos/git/block-force-push", "Block force push.", policy_git_force_push),
