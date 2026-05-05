@@ -14,7 +14,8 @@ The current implemented slice provides:
 - a policy simulation CLI
 - fail-closed behavior for oversized payloads and required policy-load failures
 - JSON Schema for the decision artifact
-- baseline deterministic policy pack for shell, Git, secrets, package, infrastructure, and database safety
+- baseline deterministic policy pack for shell, Git, secrets, package, infrastructure, database, and anti-tamper safety
+- Claude Code-style agent hook adapter that normalizes hook payloads into SourceOS policy context
 - CI-backed tests across Python 3.10, 3.11, and 3.12
 
 ## Install locally
@@ -97,6 +98,33 @@ guardrail-fabric \
   --tool-input '{"command":"kubectl delete pod bad-pod"}'
 ```
 
+## Agent hook adapter
+
+The `guardrail-fabric-hook` entry point reads a Claude Code-style hook payload from stdin, normalizes it into a `PolicyContext`, evaluates the SourceOS baseline policy pack, optionally logs the full SourceOS decision artifact, and prints a hook-compatible response.
+
+Example denied hook response:
+
+```bash
+printf '%s' '{"session_id":"s1","tool_name":"Bash","tool_input":{"command":"sudo rm -rf /tmp/example"}}' \
+  | guardrail-fabric-hook
+```
+
+Debug the full SourceOS decision instead of the hook response:
+
+```bash
+printf '%s' '{"session_id":"s1","tool_name":"Bash","tool_input":{"command":"sudo rm -rf /tmp/example"}}' \
+  | guardrail-fabric-hook --debug-decision
+```
+
+Write hook decisions to the repo-local evidence log:
+
+```bash
+printf '%s' '{"session_id":"s1","cwd":"'"$(pwd)"'","tool_name":"Bash","tool_input":{"command":"git status"}}' \
+  | guardrail-fabric-hook --write-log --debug-decision
+```
+
+Oversized or invalid hook payloads fail closed through `defer` or `quarantine` decisions rather than implicitly allowing the action.
+
 ## Fail-closed checks
 
 Oversized payloads defer rather than implicitly allowing the action:
@@ -133,8 +161,7 @@ pytest -q
 ## Next implementation slices
 
 1. Improve policy engine ordering and accumulate multiple instruct/allow-with-context decisions.
-2. Add anti-tamper policies for guardrail config, CI, evidence logs, branch protection, and AgentPlane stop gates.
-3. Add agent hook adapters: Claude Code, Codex, Cursor, Gemini CLI, OpenCode, and AgentPlane-native execution.
-4. Add stop-gate integration with AgentPlane evidence artifacts.
-5. Add PolicyFabric inheritance and signed break-glass integration.
-6. Add TurtleTerm and SocioSphere local session review surfaces.
+2. Add hardened agent-client installers for Claude Code, Codex, Cursor, Gemini CLI, OpenCode, and AgentPlane-native execution.
+3. Add stop-gate integration with AgentPlane evidence artifacts.
+4. Add PolicyFabric inheritance and signed break-glass integration.
+5. Add TurtleTerm and SocioSphere local session review surfaces.
