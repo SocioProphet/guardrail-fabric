@@ -13,6 +13,37 @@ def bash(command: str, *, branch: str | None = None) -> PolicyContext:
     )
 
 
+def test_blocks_evidence_log_deletion() -> None:
+    decision = evaluate_baseline(bash("rm .sourceos/logs/guardrail-decisions.jsonl"))
+    assert decision.policyId == "sourceos/anti-tamper/block-evidence-mutation"
+    assert decision.decision == Decision.DENY
+
+
+def test_blocks_evidence_log_overwrite() -> None:
+    decision = evaluate_baseline(bash("echo '{}' > .sourceos/logs/guardrail-decisions.jsonl"))
+    assert decision.policyId == "sourceos/anti-tamper/block-evidence-mutation"
+    assert decision.decision == Decision.DENY
+
+
+def test_escalates_policy_file_edit_from_file_tool() -> None:
+    decision = evaluate_baseline(
+        PolicyContext(
+            tool="Write",
+            action_class=ActionClass.FILESYSTEM,
+            tool_input={"file_path": ".sourceos/policies/repo.json", "content": "{}"},
+            repo="SocioProphet/guardrail-fabric",
+        )
+    )
+    assert decision.policyId == "sourceos/anti-tamper/escalate-control-surface-change"
+    assert decision.decision == Decision.ESCALATE
+
+
+def test_escalates_workflow_edit_from_shell() -> None:
+    decision = evaluate_baseline(bash("sed -i 's/python-version/py/' .github/workflows/ci.yml"))
+    assert decision.policyId == "sourceos/anti-tamper/escalate-control-surface-change"
+    assert decision.decision == Decision.ESCALATE
+
+
 def test_blocks_shell_operator_injection() -> None:
     decision = evaluate_baseline(bash("git status && rm -rf build"))
     assert decision.policyId == "sourceos/shell/block-operator-injection"
