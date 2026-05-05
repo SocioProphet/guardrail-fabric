@@ -42,8 +42,8 @@ PRIVATE_KEY_RE = re.compile(r"-----BEGIN (?:[A-Z]+ )?PRIVATE KEY-----")
 BEARER_RE = re.compile(r"Authorization:\s*Bearer\s+[A-Za-z0-9\-._~+/]{20,}", re.I)
 CONNECTION_STRING_RE = re.compile(r"(?:postgresql|postgres|mysql|mongodb(?:\+srv)?|redis|amqps?|smtps?)://[^@\s]+@", re.I)
 
-ENV_FILE_RE = re.compile(r"(?:^|[/\\])\.env(?:\.|$)")
-SECRET_FILE_RE = re.compile(r"(?:^|[/\\])(?:id_rsa|credentials)(?:$|[/\\])|\.(?:pem|key|p12|pfx)$", re.I)
+ENV_FILE_RE = re.compile(r"(?:^|[\s/\\])\.env(?:[\s.]|$)")
+SECRET_FILE_RE = re.compile(r"(?:^|[\s/\\])(?:id_rsa|credentials)(?:$|[\s/\\])|\.(?:pem|key|p12|pfx)(?:$|\s)", re.I)
 
 INFRA_TOOLS = {"kubectl", "terraform", "tofu", "aws", "gcloud", "az", "helm"}
 DB_TOOLS = {"psql", "mysql", "sqlite3", "pgcli", "clickhouse-client"}
@@ -352,7 +352,7 @@ def policy_package_global_install_or_publish(ctx: PolicyContext) -> PolicyDecisi
             remediation="Create a release PR/artifact and request explicit publication approval.",
             action_class=ActionClass.PACKAGE,
         )
-    if " -g" in command or " --global" in command or command.startswith("cargo install"):
+    if " -g" in command or " --global" in command or " global " in command or command.startswith("cargo install"):
         return _decision(
             ctx,
             policy_id="sourceos/package/instruct-global-install",
@@ -430,7 +430,6 @@ def policy_database_destructive_sql(ctx: PolicyContext) -> PolicyDecision | None
 
 def baseline_policies() -> list[BaselinePolicy]:
     return [
-        BaselinePolicy("sourceos/shell/block-operator-injection", "Block shell operator/metacharacter bypasses.", policy_shell_operator_injection),
         BaselinePolicy("sourceos/shell/block-privilege-escalation", "Block privilege escalation.", policy_block_privilege_escalation),
         BaselinePolicy("sourceos/shell/block-download-pipe-exec", "Block downloaded content piped to execution.", policy_block_download_pipe_shell),
         BaselinePolicy("sourceos/secrets/block-secret-file-access", "Block .env and secret-adjacent file access.", policy_block_secret_file_access),
@@ -444,6 +443,7 @@ def baseline_policies() -> list[BaselinePolicy]:
         BaselinePolicy("sourceos/package/instruct-global-install", "Instruct on global package installs.", policy_package_global_install_or_publish),
         BaselinePolicy("sourceos/infra/escalate-mutation", "Escalate infrastructure and pipeline mutation.", policy_infra_mutation_escalates),
         BaselinePolicy("sourceos/database/escalate-destructive-sql", "Escalate destructive SQL.", policy_database_destructive_sql),
+        BaselinePolicy("sourceos/shell/block-operator-injection", "Block shell operator/metacharacter bypasses.", policy_shell_operator_injection),
     ]
 
 
