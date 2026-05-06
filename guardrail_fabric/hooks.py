@@ -37,6 +37,12 @@ def read_stdin_bytes(limit_bytes: int = DEFAULT_STDIN_LIMIT_BYTES) -> tuple[byte
     return data[:limit_bytes], len(data) > limit_bytes
 
 
+def hook_event_name(payload: dict[str, Any]) -> str:
+    """Return the hook event name from known payload field variants."""
+
+    return str(payload.get("hook_event_name") or payload.get("hookEventName") or "PreToolUse")
+
+
 def infer_action_class(tool_name: str | None, tool_input: dict[str, Any]) -> ActionClass:
     """Infer a coarse action class from a normalized tool event."""
 
@@ -74,7 +80,7 @@ def normalize_claude_code_payload(payload: dict[str, Any]) -> PolicyContext:
 
     tool_name = payload.get("tool_name") or payload.get("toolName")
     tool_input = payload.get("tool_input") or payload.get("toolInput") or {}
-    tool_result = payload.get("tool_result") or payload.get("toolResult")
+    tool_result = payload.get("tool_response") or payload.get("toolResponse") or payload.get("tool_result") or payload.get("toolResult")
     session_id = payload.get("session_id") or payload.get("sessionId")
     cwd = payload.get("cwd")
 
@@ -95,31 +101,48 @@ def normalize_claude_code_payload(payload: dict[str, Any]) -> PolicyContext:
     )
 
 
-def render_claude_code_response(decision: PolicyDecision) -> tuple[dict[str, Any] | None, int]:
+def decision_message(decision: PolicyDecision) -> str:
+    return f"SourceOS guardrail {decision.policyId}: {decision.reason} Remediation: {decision.remediation}"
+
+
+def render_claude_code_response(decision: PolicyDecision, *, event_name: str = "PreToolUse") -> tuple[dict[str, Any] | None, int]:
     """Render a SourceOS decision as a Claude Code-compatible hook response."""
 
     if decision.decision == Decision.ALLOW:
         return None, 0
 
-    message = f"SourceOS guardrail {decision.policyId}: {decision.reason} Remediation: {decision.remediation}"
+    message = decision_message(decision)
+    blocking = decision.decision in {Decision.DENY, Decision.QUARANTINE, Decision.DEFER, Decision.ESCALATE}
 
-    if decision.decision in {Decision.DENY, Decision.QUARANTINE, Decision.DEFER, Decision.ESCALATE}:
+    if event_name == "PostToolUse":
+        if blocking:
+            return {
+                "decision": "block",
+                "reason": message,
+                "hookSpecificOutput": {
+                    "hookEventName": "PostToolUse",
+                    "additionalContext": message,
+                },
+            }, 0
         return {
             "hookSpecificOutput": {
+                "hookEventName": "PostToolUse",
+                "additionalContext": message,
+            }
+        }, 0
+
+    if blocking:
+        return {
+            "hookSpecificOutput": {
+                "hookEventName": "PreToolUse",
                 "permissionDecision": "deny",
                 "permissionDecisionReason": message,
             }
         }, 0
 
-    if decision.decision in {Decision.INSTRUCT, Decision.ALLOW_WITH_CONTEXT, Decision.REDACT}:
-        return {
-            "hookSpecificOutput": {
-                "additionalContext": message,
-            }
-        }, 0
-
     return {
         "hookSpecificOutput": {
+            "hookEventName": "PreToolUse",
             "additionalContext": message,
         }
     }, 0
@@ -135,6 +158,7 @@ def evaluate_claude_code_payload(
     """Evaluate one Claude Code-style hook payload through baseline policies."""
 
     ctx = normalize_claude_code_payload(payload)
+    event_name = hook_event_name(payload)
 
     if payload_size_bytes is not None and payload_size_bytes > payload_limit_bytes:
         decision = decision_from_event(
@@ -166,7 +190,7 @@ def evaluate_claude_code_payload(
     else:
         decision = evaluate_baseline(ctx)
 
-    response, exit_code = render_claude_code_response(decision)
+    response, exit_code = render_claude_code_response(decision, event_name=event_name)
     return HookEvaluation(decision=decision, response=response, exit_code=exit_code)
 
 

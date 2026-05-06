@@ -7,6 +7,7 @@ import sys
 from guardrail_fabric.decision import ActionClass, Decision
 from guardrail_fabric.hooks import (
     evaluate_claude_code_payload,
+    hook_event_name,
     infer_action_class,
     main,
     normalize_claude_code_payload,
@@ -22,6 +23,12 @@ class _Stdin:
 def test_infer_action_class_for_git_command() -> None:
     action_class = infer_action_class("Bash", {"command": "git status"})
     assert action_class == ActionClass.GIT
+
+
+def test_hook_event_name_defaults_to_pretooluse() -> None:
+    assert hook_event_name({}) == "PreToolUse"
+    assert hook_event_name({"hook_event_name": "PostToolUse"}) == "PostToolUse"
+    assert hook_event_name({"hookEventName": "PostToolUse"}) == "PostToolUse"
 
 
 def test_normalize_claude_code_payload() -> None:
@@ -55,8 +62,26 @@ def test_hook_evaluation_blocks_privilege_escalation() -> None:
     assert evaluation.decision.policyId == "sourceos/shell/block-privilege-escalation"
     assert evaluation.decision.decision == Decision.DENY
     assert evaluation.response is not None
+    assert evaluation.response["hookSpecificOutput"]["hookEventName"] == "PreToolUse"
     assert evaluation.response["hookSpecificOutput"]["permissionDecision"] == "deny"
     assert "Remediation:" in evaluation.response["hookSpecificOutput"]["permissionDecisionReason"]
+
+
+def test_posttooluse_block_response_uses_decision_block() -> None:
+    evaluation = evaluate_claude_code_payload(
+        {
+            "hook_event_name": "PostToolUse",
+            "session_id": "session-1",
+            "tool_name": "Bash",
+            "tool_input": {"command": "cat output.txt"},
+            "tool_response": {"stdout": "Authorization: Bearer abcdefghijklmnopqrstuvwxyz123456"},
+        }
+    )
+
+    assert evaluation.decision.policyId == "sourceos/secrets/redact-secret-output"
+    assert evaluation.response is not None
+    assert evaluation.response["hookSpecificOutput"]["hookEventName"] == "PostToolUse"
+    assert evaluation.response["hookSpecificOutput"]["additionalContext"]
 
 
 def test_hook_evaluation_redacts_secret_output_as_context() -> None:
