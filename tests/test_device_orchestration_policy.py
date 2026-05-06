@@ -1,4 +1,8 @@
-from guardrail_fabric.device_orchestration_policy import evaluate_orchestration_action
+from guardrail_fabric.decision import Decision
+from guardrail_fabric.device_orchestration_policy import (
+    evaluate_orchestration_action,
+    sourceos_decision_from_orchestration_context,
+)
 
 
 def test_low_risk_appliance_action_allowed():
@@ -80,3 +84,21 @@ def test_degraded_adapter_yields_degraded_decision():
     )
 
     assert decision["outcome"] == "degraded"
+
+
+def test_sourceos_abi_maps_requires_approval_to_escalate():
+    decision = sourceos_decision_from_orchestration_context(
+        {
+            "subject_node_id": "node:security-system-01",
+            "action_type": "arm_alarm",
+            "capability_class": "high_risk_actuation",
+            "adapter_health": "healthy",
+            "approval_mode": "explicit_user_approval",
+            "event_id": "event:agent:propose-arm-security",
+        }
+    )
+
+    assert decision.schema == "sourceos.guardrail.decision.v0.1"
+    assert decision.decision == Decision.ESCALATE
+    assert decision.effects.agentMayContinue is False
+    assert decision.effects.requiresHumanApproval is True
