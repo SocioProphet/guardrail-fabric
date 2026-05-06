@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any
 
 from .decision import ActionClass, decision_from_event
+from .device_orchestration_policy import sourceos_decision_from_orchestration_context
 from .log import append_decision
 from .policies import PolicyContext, evaluate_baseline
 
@@ -47,6 +48,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--payload-limit-bytes", type=int, default=1_048_576)
     parser.add_argument("--required-policy-error")
     parser.add_argument("--baseline", action="store_true", help="Evaluate the built-in SourceOS baseline policy pack")
+    parser.add_argument("--device-orchestration", action="store_true", help="Evaluate the sovereign device orchestration policy pack against --tool-input")
     parser.add_argument("--write-log", action="store_true", help="Append the decision to .sourceos/logs/guardrail-decisions.jsonl")
     parser.add_argument("--log-path", help="Override decision log path")
     return parser
@@ -59,7 +61,20 @@ def main(argv: list[str] | None = None) -> int:
     tool_input = _load_json_arg(args.tool_input)
     tool_output = _load_json_arg(args.tool_output) if args.tool_output else None
 
-    if args.baseline and args.payload_size_bytes is None and not args.required_policy_error:
+    if args.device_orchestration:
+        decision = sourceos_decision_from_orchestration_context(
+            {
+                **tool_input,
+                "repo": args.repo,
+                "branch": args.branch,
+                "commit": args.commit,
+                "cwd": args.cwd,
+                "session_id": args.session_id,
+                "agent_id": args.agent_id,
+                "task_id": args.task_id,
+            }
+        )
+    elif args.baseline and args.payload_size_bytes is None and not args.required_policy_error:
         decision = evaluate_baseline(
             PolicyContext(
                 tool=args.tool,
