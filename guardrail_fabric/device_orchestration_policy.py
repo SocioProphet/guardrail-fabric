@@ -5,12 +5,16 @@ This module intentionally has no third-party dependencies. It is a bridge from
 to the Guardrail Fabric policy pack requested in issue #18.
 
 The evaluator accepts a small policy context dictionary and returns a decision
-shape compatible with the orchestration receipt contract.
+shape compatible with the orchestration receipt contract. The ABI adapter emits
+`sourceos.guardrail.decision.v0.1` artifacts so the policy pack can run through
+the existing Guardrail Fabric CLI and evidence logging path.
 """
 
 from __future__ import annotations
 
 from typing import Any, Mapping
+
+from .decision import ActionClass, Decision, Evidence, PolicyDecision, Scope, Severity, stable_digest
 
 
 ALLOWED_OUTCOMES = {
@@ -115,4 +119,63 @@ def evaluate_orchestration_action(context: Mapping[str, Any]) -> dict[str, Any]:
     return decision
 
 
-__all__ = ["ALLOWED_OUTCOMES", "evaluate_orchestration_action"]
+def sourceos_decision_from_orchestration_context(context: Mapping[str, Any]) -> PolicyDecision:
+    """Convert an orchestration policy decision into the Guardrail Fabric ABI."""
+
+    orchestration = evaluate_orchestration_action(context)
+    outcome = orchestration["outcome"]
+
+    decision_map = {
+        "allowed": Decision.ALLOW,
+        "denied": Decision.DENY,
+        "requires_approval": Decision.ESCALATE,
+        "requires_local_only": Decision.INSTRUCT,
+        "redacted": Decision.REDACT,
+        "degraded": Decision.DEFER,
+    }
+    severity_map = {
+        "allowed": Severity.INFO,
+        "denied": Severity.HIGH,
+        "requires_approval": Severity.HIGH,
+        "requires_local_only": Severity.MEDIUM,
+        "redacted": Severity.MEDIUM,
+        "degraded": Severity.MEDIUM,
+    }
+    remediation_map = {
+        "allowed": "Continue and emit an orchestration evidence receipt.",
+        "denied": "Do not execute the action. Preserve the denied proposal and policy reasons as evidence.",
+        "requires_approval": "Pause execution and request explicit scoped approval before actuation.",
+        "requires_local_only": "Keep the action local-only and do not use a remote/cloud adapter path.",
+        "redacted": "Suppress sensitive content and emit a redacted evidence receipt.",
+        "degraded": "Do not actuate. Repair or recheck adapter health, then replay through policy.",
+    }
+
+    evidence = Evidence(
+        repo=str(context.get("repo")) if context.get("repo") else None,
+        branch=str(context.get("branch")) if context.get("branch") else None,
+        commit=str(context.get("commit")) if context.get("commit") else None,
+        cwd=str(context.get("cwd")) if context.get("cwd") else None,
+        tool="DeviceOrchestration",
+        actionClass=ActionClass.RUNTIME,
+        inputDigest=stable_digest(dict(context)),
+        sessionId=str(context.get("session_id")) if context.get("session_id") else None,
+        agentId=str(context.get("agent_id")) if context.get("agent_id") else None,
+        taskId=str(context.get("task_id")) if context.get("task_id") else None,
+    )
+
+    return PolicyDecision.create(
+        policy_id=str(orchestration["policy_package"]),
+        decision=decision_map[outcome],
+        severity=severity_map[outcome],
+        scope=Scope.RUNTIME,
+        reason="; ".join(orchestration["reasons"]),
+        remediation=remediation_map[outcome],
+        evidence=evidence,
+    )
+
+
+__all__ = [
+    "ALLOWED_OUTCOMES",
+    "evaluate_orchestration_action",
+    "sourceos_decision_from_orchestration_context",
+]
