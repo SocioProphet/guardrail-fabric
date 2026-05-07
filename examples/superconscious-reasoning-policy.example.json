@@ -1,0 +1,42 @@
+{
+  "apiVersion": "guardrail.socioprophet.dev/v1",
+  "kind": "SuperconsciousReasoningPolicyAdmission",
+  "metadata": {
+    "name": "superconscious-m1-deterministic-admission",
+    "createdAt": "2026-05-06T00:00:00Z"
+  },
+  "spec": {
+    "reasoningRunRef": "urn:srcos:reasoning-run:superconscious-demo",
+    "agentRef": "urn:socioprophet:agent:superconscious-demo",
+    "workspaceRef": "urn:socioprophet:workspace:superconscious-m1",
+    "policyRef": "urn:socioprophet:guardrail-policy:superconscious-m1-deterministic",
+    "admissions": {
+      "deterministicLocalRun": "allow",
+      "toolUse": "allow-readonly-mock",
+      "modelRoute": "allow-deterministic-stub",
+      "memoryWrite": "proposal-only",
+      "networkEgress": "deny",
+      "hostStateChange": "deny",
+      "browserControl": "deny",
+      "terminalAction": "deny",
+      "documentAction": "deny",
+      "approvalEscalation": "not-required"
+    },
+    "safeTrace": {
+      "mode": "operational-trace-only",
+      "rawPrivateReasoning": "not-collected"
+    },
+    "decision": {
+      "decisionStatus": "allow",
+      "reasonCodes": [
+        "deterministic-local-run",
+        "no-network-egress",
+        "no-model-calls",
+        "no-host-state-change",
+        "memory-proposal-only",
+        "safe-operational-trace"
+      ],
+      "evidenceRef": "urn:srcos:reasoning-event:superconscious-policy-admission"
+    }
+  }
+}
