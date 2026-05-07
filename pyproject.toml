@@ -30,6 +30,7 @@ classifiers = [
 [project.scripts]
 guardrail-fabric = "guardrail_fabric.simulate:main"
 guardrail-fabric-hook = "guardrail_fabric.hooks:main"
+guardrail-fabric-event-capability = "guardrail_fabric.event_capability_cli:main"
 guardrail-fabric-install-project-hooks = "guardrail_fabric.project_hooks:main"
 
 [tool.setuptools.packages.find]
