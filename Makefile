@@ -1,7 +1,10 @@
-.PHONY: validate test emit-demo-decision release-dry-run
+.PHONY: validate test emit-demo-decision release-dry-run validate-superconscious-reasoning-policy
 
-validate:
+validate: validate-superconscious-reasoning-policy
 	python3 tools/validate_guardrail_examples.py
+
+validate-superconscious-reasoning-policy:
+	python3 tools/validate_superconscious_reasoning_policy.py
 
 test:
 	python3 -m pytest -q tools/tests
