@@ -1,0 +1,181 @@
+Metadata-Version: 2.4
+Name: guardrail-fabric
+Version: 0.1.0
+Summary: SourceOS guardrail decision ABI, local evidence logging, and policy simulation substrate.
+Author: SocioProphet
+License: MIT
+Keywords: sourceos,agents,guardrails,policy,evidence,agentplane
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+
+# guardrail-fabric
+
+Reusable guardrail fabric for SocioProphet models, agents, tools, RAG packages, knowledge bases, and runtime deployments.
+
+## SourceOS Agent Reliability Control Plane
+
+This repository owns the deterministic guardrail layer for the SourceOS Agent Reliability Control Plane.
+
+The current implemented slice provides:
+
+- `sourceos.guardrail.decision.v0.1` policy decision ABI
+- Python dataclasses and enums for decisions, evidence, effects, severity, scope, and action class
+- local JSONL decision logging at `.sourceos/logs/guardrail-decisions.jsonl`
+- a policy simulation CLI
+- fail-closed behavior for oversized payloads and required policy-load failures
+- JSON Schema for the decision artifact
+- baseline deterministic policy pack for shell, Git, secrets, package, infrastructure, database, and anti-tamper safety
+- Claude Code-style agent hook adapter that normalizes hook payloads into SourceOS policy context
+- CI-backed tests across Python 3.10, 3.11, and 3.12
+
+## Install locally
+
+```bash
+python -m pip install -e .
+```
+
+## Simulate a decision
+
+```bash
+guardrail-fabric \
+  --policy-id sourceos/core/simulated-event \
+  --tool Bash \
+  --action-class shell \
+  --tool-input '{"command":"git status"}' \
+  --repo SocioProphet/guardrail-fabric \
+  --branch main
+```
+
+Write the simulated decision to the repo-local evidence log:
+
+```bash
+guardrail-fabric \
+  --tool Bash \
+  --action-class shell \
+  --tool-input '{"command":"git status"}' \
+  --write-log
+```
+
+The log is written to:
+
+```text
+.sourceos/logs/guardrail-decisions.jsonl
+```
+
+## Evaluate baseline policies
+
+Use `--baseline` to run the built-in SourceOS baseline policy pack.
+
+Safe read-only Git command:
+
+```bash
+guardrail-fabric \
+  --baseline \
+  --tool Bash \
+  --action-class shell \
+  --tool-input '{"command":"git status"}' \
+  --branch main
+```
+
+Blocked privilege escalation:
+
+```bash
+guardrail-fabric \
+  --baseline \
+  --tool Bash \
+  --action-class shell \
+  --tool-input '{"command":"sudo rm -rf /tmp/example"}'
+```
+
+Blocked protected-branch mutation:
+
+```bash
+guardrail-fabric \
+  --baseline \
+  --tool Bash \
+  --action-class shell \
+  --tool-input '{"command":"git commit -m test"}' \
+  --branch main
+```
+
+Escalated infrastructure mutation:
+
+```bash
+guardrail-fabric \
+  --baseline \
+  --tool Bash \
+  --action-class shell \
+  --tool-input '{"command":"kubectl delete pod bad-pod"}'
+```
+
+## Agent hook adapter
+
+The `guardrail-fabric-hook` entry point reads a Claude Code-style hook payload from stdin, normalizes it into a `PolicyContext`, evaluates the SourceOS baseline policy pack, optionally logs the full SourceOS decision artifact, and prints a hook-compatible response.
+
+Example denied hook response:
+
+```bash
+printf '%s' '{"session_id":"s1","tool_name":"Bash","tool_input":{"command":"sudo rm -rf /tmp/example"}}' \
+  | guardrail-fabric-hook
+```
+
+Debug the full SourceOS decision instead of the hook response:
+
+```bash
+printf '%s' '{"session_id":"s1","tool_name":"Bash","tool_input":{"command":"sudo rm -rf /tmp/example"}}' \
+  | guardrail-fabric-hook --debug-decision
+```
+
+Write hook decisions to the repo-local evidence log:
+
+```bash
+printf '%s' '{"session_id":"s1","cwd":"'"$(pwd)"'","tool_name":"Bash","tool_input":{"command":"git status"}}' \
+  | guardrail-fabric-hook --write-log --debug-decision
+```
+
+Oversized or invalid hook payloads fail closed through `defer` or `quarantine` decisions rather than implicitly allowing the action.
+
+## Fail-closed checks
+
+Oversized payloads defer rather than implicitly allowing the action:
+
+```bash
+guardrail-fabric \
+  --tool Write \
+  --action-class filesystem \
+  --payload-size-bytes 2000000 \
+  --payload-limit-bytes 1000
+```
+
+Required policy loader failures quarantine the action:
+
+```bash
+guardrail-fabric \
+  --tool Bash \
+  --action-class shell \
+  --required-policy-error "missing sourceos/git policy pack"
+```
+
+## Run tests
+
+```bash
+python -m pip install -e . pytest
+pytest -q
+```
+
+## Documentation
+
+- `docs/sourceos-agent-reliability-control-plane.md` defines the implementation lane.
+- `schemas/sourceos.guardrail.decision.v0.1.schema.json` defines the machine-readable decision shape.
+
+## Next implementation slices
+
+1. Improve policy engine ordering and accumulate multiple instruct/allow-with-context decisions.
+2. Add hardened agent-client installers for Claude Code, Codex, Cursor, Gemini CLI, OpenCode, and AgentPlane-native execution.
+3. Add stop-gate integration with AgentPlane evidence artifacts.
+4. Add PolicyFabric inheritance and signed break-glass integration.
+5. Add TurtleTerm and SocioSphere local session review surfaces.
