@@ -1,0 +1,49 @@
+{
+  "description": "Example: technical-document claim provisionally admitted. All evidence requirements are met but source trust is below the minimum ('low' < 'medium'). The claim is admitted with conditions and must be re-verified. Maps to Decision.ALLOW_WITH_CONTEXT in the canonical ABI.",
+  "fixture": {
+    "claim": {
+      "claimId": "claim-td-prov-001",
+      "claimClass": "technical_document",
+      "candidateSource": "explainable_trace",
+      "hasExplanationTrace": true,
+      "hasCitation": true,
+      "sourceTrust": "low",
+      "explanationTraceId": "trace-holmes-003"
+    },
+    "provisionalAdmission": {
+      "admissionId": "<uuid>",
+      "claimId": "claim-td-prov-001",
+      "policyId": "governed-intelligence/claim/technical-document",
+      "timestamp": "<iso-8601-utc>",
+      "expiry": "<iso-8601-utc+30d>",
+      "conditions": [
+        "Source trust must be elevated to 'medium' or above before this claim is treated as authoritative.",
+        "Re-verification required within 30 days."
+      ],
+      "revoked": false
+    },
+    "policyDecision": {
+      "schema": "sourceos.guardrail.decision.v0.1",
+      "policyId": "governed-intelligence/claim/technical-document",
+      "policyVersion": "0.1.0",
+      "scope": "repo",
+      "severity": "low",
+      "decision": "allow_with_context",
+      "admissionDecision": "provisional",
+      "reason": "Claim 'claim-td-prov-001' is provisionally admitted. Source trust 'low' is below the minimum 'medium'. This admission is provisional and subject to re-verification.",
+      "remediation": "Elevate the source trust level before treating this claim as authoritative. Record the claim status as 'provisional' in the claim registry and schedule re-verification.",
+      "evidence": {
+        "actionClass": "model",
+        "inputDigest": "sha256:<stable-digest-of-claim-id-and-source>"
+      },
+      "effects": {
+        "agentMayContinue": true,
+        "requiresHumanApproval": false,
+        "redacted": false,
+        "logsRequired": true,
+        "tamperSealRequired": true
+      }
+    }
+  },
+  "note": "admissionDecision='provisional' maps to decision='allow_with_context' in the canonical sourceos.guardrail.decision.v0.1 ABI."
+}

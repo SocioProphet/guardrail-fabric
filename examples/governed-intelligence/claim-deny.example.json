@@ -1,0 +1,39 @@
+{
+  "description": "Example: claim denied because the candidate source is raw model output (invariant violation). Raw model output is never admitted truth.",
+  "fixture": {
+    "claim": {
+      "claimId": "claim-deny-001",
+      "claimClass": "technical_document",
+      "candidateSource": "model_output",
+      "hasExplanationTrace": true,
+      "hasCitation": true,
+      "sourceTrust": "high"
+    },
+    "policyDecision": {
+      "schema": "sourceos.guardrail.decision.v0.1",
+      "policyId": "governed-intelligence/claim/technical-document",
+      "policyVersion": "0.1.0",
+      "scope": "repo",
+      "severity": "high",
+      "decision": "deny",
+      "reason": "Claim 'claim-deny-001' sourced from 'model_output' is not admissible. Raw model output is not admitted truth.",
+      "remediation": "Provide a verified citation, human-authored anchor, or an explanation-traced derivation before submitting this claim.",
+      "evidence": {
+        "actionClass": "model",
+        "inputDigest": "sha256:<stable-digest-of-claim-id-and-source>"
+      },
+      "effects": {
+        "agentMayContinue": false,
+        "requiresHumanApproval": false,
+        "redacted": false,
+        "logsRequired": true,
+        "tamperSealRequired": true
+      }
+    }
+  },
+  "invariants_enforced": [
+    "Raw model output is not admitted truth.",
+    "Raw graph candidate is not admitted truth.",
+    "Raw vector candidate is never admitted truth; VectorCandidate.status must remain candidate_only."
+  ]
+}
