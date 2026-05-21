@@ -153,9 +153,66 @@ python -m pip install -e . pytest
 pytest -q
 ```
 
+## Governed-intelligence claim/action admission
+
+guardrail-fabric owns the **`Govern`** step in the canonical loop:
+
+```
+Observe -> Anchor -> Normalize -> Propose -> Explain -> Verify
+-> Govern -> Act -> Receipt -> Learn
+```
+
+The `Govern` step applies claim admission and action admission policies before any claim is treated as truth or any agent action is executed.
+
+### Key invariants
+
+- Raw model output is not admitted truth.
+- Raw graph candidate is not admitted truth.
+- Raw vector candidate is never admitted truth; `VectorCandidate.status` must remain `candidate_only`.
+- Agent action requires action admission before effectful runtime execution.
+- High-impact legal/security/world-state/runtime claims can require review even when evidence is strong.
+
+### Admission decision states
+
+| State | Canonical ABI `decision` | Meaning |
+|---|---|---|
+| `allow` | `allow` | All evidence requirements met; no review gate. |
+| `deny` | `deny` | Invariant violation or missing required evidence. |
+| `require_review` | `escalate` | Review gate applies; human approval required. |
+| `provisional` | `allow_with_context` | Evidence met but source trust below minimum. |
+
+### Quick start
+
+```python
+from guardrail_fabric import default_claim_policies, CandidateSource
+
+policy = default_claim_policies()["technical_document"]
+decision = policy.evaluate(
+    claim_id="claim-001",
+    candidate_source=CandidateSource.VERIFIED_CITATION,
+    has_explanation_trace=True,
+    has_citation=True,
+    source_trust="medium",
+)
+print(decision.decision)  # allow
+```
+
+### Consumer catalogue
+
+| Repo | Role |
+|---|---|
+| **Holmes** (`SocioProphet/holmes`) | Produces `ExplanationTrace` consumed as evidence by `ClaimAdmissionPolicy`. |
+| **Sherlock** (`SocioProphet/sherlock-search`) | Produces retrieval evidence (`citationId`, `sourceTrust`) consumed by `ClaimAdmissionPolicy`. |
+| **GAIA** (`SocioProphet/gaia-world-model`) | Produces world/GAIA claims admitted via `ClaimAdmissionPolicy`. |
+| **Agentplane** | Consumes `ActionAdmission` `PolicyDecision` as a runtime execution gate; records `RuntimeReceipt`. |
+| **Sociosphere** (`SocioProphet/sociosphere`) | Coordinates the parent workflow loop via `PolicyDecision` refs. |
+
+See `docs/governed-intelligence-admission-policy.md` and `examples/governed-intelligence/` for full details.
+
 ## Documentation
 
 - `docs/sourceos-agent-reliability-control-plane.md` defines the implementation lane.
+- `docs/governed-intelligence-admission-policy.md` defines claim/action admission policies and repo boundaries.
 - `schemas/sourceos.guardrail.decision.v0.1.schema.json` defines the machine-readable decision shape.
 
 ## Next implementation slices

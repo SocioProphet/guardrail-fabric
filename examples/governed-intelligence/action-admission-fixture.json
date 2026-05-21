@@ -1,0 +1,80 @@
+{
+  "description": "Fixture: ActionProposal → ActionAdmission → RuntimeReceipt requirement chain. Illustrates the full action admission pipeline for the execute_ingest_fusion action class.",
+  "invariant": "Agent action requires action admission before effectful runtime execution.",
+  "canonicalLoop": "Observe -> Anchor -> Normalize -> Propose -> Explain -> Verify -> Govern -> Act -> Receipt -> Learn",
+  "governStep": "ActionAdmissionPolicy evaluates the action proposal after claims are admitted.",
+  "fixture": {
+    "admittedClaim": {
+      "claimId": "fixture-action-claim-001",
+      "claimClass": "runtime_action",
+      "status": "admitted",
+      "policyDecisionId": "pd-claim-001",
+      "admittedAt": "2026-05-08T00:10:00Z"
+    },
+    "actionProposal": {
+      "actionId": "fixture-action-proposal-001",
+      "actionClass": "execute_ingest_fusion",
+      "proposedBy": "agent:socioprophet/ingest-agent",
+      "proposedAt": "2026-05-08T00:11:00Z",
+      "admittedClaimIds": ["fixture-action-claim-001"],
+      "description": "Execute bounded ingest/fusion workflow for GAIA tile set alpha-7.",
+      "boundaryConstraints": {
+        "maxRecords": 10000,
+        "targetDataset": "gaia/tile-alpha-7",
+        "allowedSources": ["sherlock-search", "verified-citations"]
+      }
+    },
+    "actionAdmission": {
+      "policyDecision": {
+        "schema": "sourceos.guardrail.decision.v0.1",
+        "policyId": "governed-intelligence/action/execute-ingest-fusion",
+        "policyVersion": "0.1.0",
+        "scope": "runtime",
+        "severity": "info",
+        "decision": "allow",
+        "reason": "Action 'fixture-action-proposal-001' (execute_ingest_fusion) is admitted for execution.",
+        "remediation": "Proceed with bounded execution. Record a RuntimeReceipt upon completion.",
+        "evidence": {
+          "actionClass": "runtime",
+          "inputDigest": "sha256:<stable-digest-of-action-id-and-class>"
+        },
+        "effects": {
+          "agentMayContinue": true,
+          "requiresHumanApproval": false,
+          "redacted": false,
+          "logsRequired": true,
+          "tamperSealRequired": true
+        }
+      }
+    },
+    "runtimeReceiptRequirement": {
+      "description": "A RuntimeReceipt MUST be recorded upon completion of the action. The receipt must reference the actionId, policyDecisionId, and outcome.",
+      "requiredFields": [
+        "receiptId",
+        "actionId",
+        "policyDecisionId",
+        "outcome",
+        "completedAt",
+        "agentId"
+      ],
+      "exampleReceipt": {
+        "receiptId": "<uuid>",
+        "actionId": "fixture-action-proposal-001",
+        "policyDecisionId": "<decisionId from actionAdmission.policyDecision>",
+        "outcome": "success",
+        "completedAt": "2026-05-08T00:15:00Z",
+        "agentId": "agent:socioprophet/ingest-agent",
+        "recordsIngested": 8342,
+        "targetDataset": "gaia/tile-alpha-7"
+      },
+      "logsRequired": true,
+      "tamperSealRequired": true
+    }
+  },
+  "consumers": {
+    "guardrail-fabric": "Owns ActionAdmissionPolicy; emits PolicyDecision as the execution gate.",
+    "agentplane": "Consumes the ActionAdmission PolicyDecision before executing the action; records the RuntimeReceipt.",
+    "sociosphere": "Coordinates the Act and Receipt steps via the canonical loop.",
+    "memorymesh": "Records the RuntimeReceipt as a learnable provenance artifact for the Learn step."
+  }
+}

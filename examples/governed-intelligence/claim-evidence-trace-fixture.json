@@ -1,0 +1,74 @@
+{
+  "description": "Fixture: Claim → Evidence → ExplanationTrace → PolicyDecision chain for a technical-document claim. This fixture illustrates the full governed-intelligence admission pipeline for the 'Govern' step of the canonical loop.",
+  "canonicalLoop": "Observe -> Anchor -> Normalize -> Propose -> Explain -> Verify -> Govern -> Act -> Receipt -> Learn",
+  "governStep": "ClaimAdmissionPolicy evaluates the claim after Verify produces an ExplanationTrace.",
+  "fixture": {
+    "claim": {
+      "claimId": "fixture-chain-claim-001",
+      "claimClass": "technical_document",
+      "proposedText": "The SourceOS guardrail-fabric repo owns the Govern step for claim admission.",
+      "proposedAt": "2026-05-08T00:00:00Z",
+      "status": "proposed"
+    },
+    "evidence": {
+      "evidenceId": "fixture-chain-evidence-001",
+      "claimId": "fixture-chain-claim-001",
+      "candidateSource": "verified_citation",
+      "citationId": "citation-sherlock-chain-001",
+      "citationUrl": "https://github.com/SocioProphet/guardrail-fabric",
+      "sourceTrust": "high",
+      "retrievedAt": "2026-05-08T00:01:00Z"
+    },
+    "explanationTrace": {
+      "traceId": "fixture-chain-trace-001",
+      "claimId": "fixture-chain-claim-001",
+      "evidenceId": "fixture-chain-evidence-001",
+      "reasoning": "The README and sourceos-agent-reliability-control-plane.md define guardrail-fabric as owning the Govern step.",
+      "confidence": 0.97,
+      "producedBy": "holmes",
+      "producedAt": "2026-05-08T00:02:00Z"
+    },
+    "admissionInput": {
+      "claimId": "fixture-chain-claim-001",
+      "candidateSource": "verified_citation",
+      "hasExplanationTrace": true,
+      "hasCitation": true,
+      "humanVerified": false,
+      "sourceTrust": "high"
+    },
+    "policyDecision": {
+      "schema": "sourceos.guardrail.decision.v0.1",
+      "policyId": "governed-intelligence/claim/technical-document",
+      "policyVersion": "0.1.0",
+      "scope": "repo",
+      "severity": "info",
+      "decision": "allow",
+      "reason": "Claim 'fixture-chain-claim-001' meets all evidence requirements and review gates.",
+      "remediation": "No action required. Record the admission in the claim registry.",
+      "evidence": {
+        "actionClass": "model",
+        "inputDigest": "sha256:<stable-digest>"
+      },
+      "effects": {
+        "agentMayContinue": true,
+        "requiresHumanApproval": false,
+        "redacted": false,
+        "logsRequired": true,
+        "tamperSealRequired": true
+      }
+    },
+    "claimRegistryUpdate": {
+      "claimId": "fixture-chain-claim-001",
+      "status": "admitted",
+      "admittedAt": "2026-05-08T00:03:00Z",
+      "policyDecisionId": "<decisionId from policyDecision above>"
+    }
+  },
+  "consumers": {
+    "holmes": "Produces ExplanationTrace (traceId) consumed by ClaimAdmissionPolicy.",
+    "sherlock": "Produces Evidence (citationId, sourceTrust) consumed by ClaimAdmissionPolicy.",
+    "guardrail-fabric": "Owns ClaimAdmissionPolicy and emits PolicyDecision.",
+    "agentplane": "Consumes PolicyDecision as a completion gate before Act step.",
+    "sociosphere": "Coordinates parent workflow via PolicyDecision refs."
+  }
+}

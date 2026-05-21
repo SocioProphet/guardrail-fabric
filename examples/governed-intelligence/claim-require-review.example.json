@@ -1,0 +1,44 @@
+{
+  "description": "Example: world/GAIA claim requires human review (require_review). The mandatory high-impact review gate fires even when all evidence requirements are met. Maps to Decision.ESCALATE in the canonical ABI.",
+  "fixture": {
+    "claim": {
+      "claimId": "claim-gaia-review-001",
+      "claimClass": "world_gaia",
+      "candidateSource": "verified_citation",
+      "hasExplanationTrace": true,
+      "hasCitation": true,
+      "humanVerified": true,
+      "sourceTrust": "verified",
+      "explanationTraceId": "trace-holmes-002",
+      "citationId": "citation-sherlock-002"
+    },
+    "reviewGate": {
+      "gateId": "governed-intelligence/world-gaia-high-impact-review",
+      "description": "World/GAIA claims with legal, security, or world-state impact require human review regardless of evidence strength.",
+      "reason": "High-impact world-state changes require explicit human authorisation to prevent autonomous propagation of incorrect or harmful world models."
+    },
+    "policyDecision": {
+      "schema": "sourceos.guardrail.decision.v0.1",
+      "policyId": "governed-intelligence/claim/world-gaia",
+      "policyVersion": "0.1.0",
+      "scope": "repo",
+      "severity": "high",
+      "decision": "escalate",
+      "admissionDecision": "require_review",
+      "reason": "Claim 'claim-gaia-review-001' is subject to review gate 'governed-intelligence/world-gaia-high-impact-review': High-impact world-state changes require explicit human authorisation to prevent autonomous propagation of incorrect or harmful world models.",
+      "remediation": "Submit the claim for human review before admission. Record the human override with gate_id and reviewer identity.",
+      "evidence": {
+        "actionClass": "model",
+        "inputDigest": "sha256:<stable-digest-of-claim-id-and-source>"
+      },
+      "effects": {
+        "agentMayContinue": false,
+        "requiresHumanApproval": true,
+        "redacted": false,
+        "logsRequired": true,
+        "tamperSealRequired": true
+      }
+    }
+  },
+  "note": "admissionDecision='require_review' maps to decision='escalate' in the canonical sourceos.guardrail.decision.v0.1 ABI."
+}

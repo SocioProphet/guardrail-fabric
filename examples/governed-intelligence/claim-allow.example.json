@@ -1,0 +1,36 @@
+{
+  "description": "Example: technical-document claim fully admitted (allow). All evidence requirements met and no review gate triggered.",
+  "fixture": {
+    "claim": {
+      "claimId": "claim-td-allow-001",
+      "claimClass": "technical_document",
+      "candidateSource": "verified_citation",
+      "hasExplanationTrace": true,
+      "hasCitation": true,
+      "sourceTrust": "medium",
+      "explanationTraceId": "trace-holmes-001",
+      "citationId": "citation-sherlock-001"
+    },
+    "policyDecision": {
+      "schema": "sourceos.guardrail.decision.v0.1",
+      "policyId": "governed-intelligence/claim/technical-document",
+      "policyVersion": "0.1.0",
+      "scope": "repo",
+      "severity": "info",
+      "decision": "allow",
+      "reason": "Claim 'claim-td-allow-001' meets all evidence requirements and review gates.",
+      "remediation": "No action required. Record the admission in the claim registry.",
+      "evidence": {
+        "actionClass": "model",
+        "inputDigest": "sha256:<stable-digest-of-claim-id-and-source>"
+      },
+      "effects": {
+        "agentMayContinue": true,
+        "requiresHumanApproval": false,
+        "redacted": false,
+        "logsRequired": true,
+        "tamperSealRequired": true
+      }
+    }
+  }
+}
