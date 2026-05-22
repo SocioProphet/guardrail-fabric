@@ -61,6 +61,51 @@ def test_deny_like_state_beats_warning_like_state() -> None:
     assert decision.controlling_outcome == TrustOpsOutcome.BLOCK
 
 
+def test_same_receipt_chain_maps_identically_across_providers() -> None:
+    """Provider identity is metadata; it cannot change runtime severity."""
+    adapter_a = map_trustops_to_runtime_action(
+        [
+            TrustOpsGateDecision(
+                outcome=TrustOpsOutcome.WARN,
+                receipt_id="trustops-receipt:warn-001",
+                gate_id="gate:uncertainty",
+                evidence_refs=("evidence:uncertainty",),
+                provider_id="provider:adapter-a",
+            ),
+            TrustOpsGateDecision(
+                outcome=TrustOpsOutcome.BLOCK,
+                receipt_id="trustops-receipt:block-001",
+                gate_id="gate:privacy-leakage",
+                evidence_refs=("evidence:privacy-leakage",),
+                provider_id="provider:adapter-a",
+            ),
+        ]
+    )
+    adapter_b = map_trustops_to_runtime_action(
+        [
+            TrustOpsGateDecision(
+                outcome=TrustOpsOutcome.WARN,
+                receipt_id="trustops-receipt:warn-001",
+                gate_id="gate:uncertainty",
+                evidence_refs=("evidence:uncertainty",),
+                provider_id="provider:adapter-b",
+            ),
+            TrustOpsGateDecision(
+                outcome=TrustOpsOutcome.BLOCK,
+                receipt_id="trustops-receipt:block-001",
+                gate_id="gate:privacy-leakage",
+                evidence_refs=("evidence:privacy-leakage",),
+                provider_id="provider:adapter-b",
+            ),
+        ]
+    )
+
+    assert adapter_a.action == adapter_b.action == RuntimeGuardrailAction.BLOCK
+    assert adapter_a.controlling_outcome == adapter_b.controlling_outcome == TrustOpsOutcome.BLOCK
+    assert adapter_a.gate_ids == adapter_b.gate_ids
+    assert adapter_a.evidence_refs == adapter_b.evidence_refs
+
+
 def test_rollback_never_degrades_to_warn_when_unsupported() -> None:
     decision = map_trustops_to_runtime_action(
         [
