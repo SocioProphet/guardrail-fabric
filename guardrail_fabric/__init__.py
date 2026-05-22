@@ -27,8 +27,20 @@ from .decision import (
 )
 from .log import append_decision, default_decision_log_path
 from .policies import BaselinePolicy, PolicyContext, baseline_policies, evaluate_baseline
+from .trustops_runtime_actions import (
+    ACTION_PRECEDENCE,
+    DEFAULT_ACTION_FOR_OUTCOME,
+    OUTCOME_PRECEDENCE,
+    RuntimeGuardrailAction,
+    RuntimeGuardrailDecision,
+    TrustOpsGateDecision,
+    TrustOpsMappingError,
+    TrustOpsOutcome,
+    map_trustops_to_runtime_action,
+)
 
 __all__ = [
+    "ACTION_PRECEDENCE",
     "ActionAdmissionPolicy",
     "ActionClass",
     "AdmissionActionClass",
@@ -37,17 +49,24 @@ __all__ = [
     "CandidateSource",
     "ClaimAdmissionPolicy",
     "ClaimClass",
+    "DEFAULT_ACTION_FOR_OUTCOME",
     "Decision",
     "Evidence",
     "Effects",
     "EvidenceSufficiencyRule",
+    "OUTCOME_PRECEDENCE",
     "PolicyContext",
     "PolicyDecision",
     "ProvisionalAdmission",
     "ReviewGate",
     "Revocation",
+    "RuntimeGuardrailAction",
+    "RuntimeGuardrailDecision",
     "Scope",
     "Severity",
+    "TrustOpsGateDecision",
+    "TrustOpsMappingError",
+    "TrustOpsOutcome",
     "append_decision",
     "baseline_policies",
     "decision_from_event",
@@ -56,4 +75,5 @@ __all__ = [
     "default_decision_log_path",
     "default_evidence_rules",
     "evaluate_baseline",
+    "map_trustops_to_runtime_action",
 ]
