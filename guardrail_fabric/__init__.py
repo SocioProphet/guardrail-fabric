@@ -27,6 +27,13 @@ from .decision import (
 )
 from .log import append_decision, default_decision_log_path
 from .policies import BaselinePolicy, PolicyContext, baseline_policies, evaluate_baseline
+from .safety_preflight import (
+    NetworkMode,
+    SafetyPreflightDecision,
+    SafetyPreflightViolation,
+    SafetyViolationKind,
+    evaluate_safety_preflight,
+)
 from .trustops_runtime_actions import (
     ACTION_PRECEDENCE,
     DEFAULT_ACTION_FOR_OUTCOME,
@@ -54,6 +61,7 @@ __all__ = [
     "Evidence",
     "Effects",
     "EvidenceSufficiencyRule",
+    "NetworkMode",
     "OUTCOME_PRECEDENCE",
     "PolicyContext",
     "PolicyDecision",
@@ -62,6 +70,9 @@ __all__ = [
     "Revocation",
     "RuntimeGuardrailAction",
     "RuntimeGuardrailDecision",
+    "SafetyPreflightDecision",
+    "SafetyPreflightViolation",
+    "SafetyViolationKind",
     "Scope",
     "Severity",
     "TrustOpsGateDecision",
@@ -75,5 +86,6 @@ __all__ = [
     "default_decision_log_path",
     "default_evidence_rules",
     "evaluate_baseline",
+    "evaluate_safety_preflight",
     "map_trustops_to_runtime_action",
 ]
