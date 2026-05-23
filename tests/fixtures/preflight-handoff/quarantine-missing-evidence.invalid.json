@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "guardrail-fabric.trustops-preflight-handoff.v0.1",
+  "recordType": "TrustOpsPreflightHandoff",
+  "handoff_id": "trustops-preflight-handoff:alpha-invalid-quarantine-missing-evidence",
+  "source_system": "SocioProphet/guardrail-fabric",
+  "consumer_system": "SocioProphet/agentplane",
+  "source_receipt_id": "trustops-receipt:safety-preflight-alpha-quarantine-001",
+  "outcome": "quarantine",
+  "runtime_action": "quarantine",
+  "gate_ids": [
+    "gate://trustops/safety-preflight/quarantine-required"
+  ],
+  "evidence_refs": [],
+  "reason": "Invalid fixture: quarantine must preserve exact evidence refs.",
+  "agentplane_projection": {
+    "outcome": "quarantine",
+    "runtime_action": "quarantine",
+    "authoritative_safety_owner": "SocioProphet/guardrail-fabric",
+    "handoff_ref": "trustops-preflight-handoff:alpha-invalid-quarantine-missing-evidence"
+  }
+}

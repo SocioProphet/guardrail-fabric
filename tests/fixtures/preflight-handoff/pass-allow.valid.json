@@ -1,0 +1,23 @@
+{
+  "schemaVersion": "guardrail-fabric.trustops-preflight-handoff.v0.1",
+  "recordType": "TrustOpsPreflightHandoff",
+  "handoff_id": "trustops-preflight-handoff:alpha-pass-001",
+  "source_system": "SocioProphet/guardrail-fabric",
+  "consumer_system": "SocioProphet/agentplane",
+  "source_receipt_id": "trustops-receipt:safety-preflight-alpha-pass-001",
+  "outcome": "pass",
+  "runtime_action": "allow",
+  "gate_ids": [
+    "gate://trustops/safety-preflight/pass"
+  ],
+  "evidence_refs": [
+    "evidence://trustops/safety-preflight/pass"
+  ],
+  "reason": "Mapped TrustOps outcome 'pass' to runtime action 'allow' using the monotonic provider-neutral translation table.",
+  "agentplane_projection": {
+    "outcome": "pass",
+    "runtime_action": "allow",
+    "authoritative_safety_owner": "SocioProphet/guardrail-fabric",
+    "handoff_ref": "trustops-preflight-handoff:alpha-pass-001"
+  }
+}

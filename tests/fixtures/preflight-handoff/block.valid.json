@@ -1,0 +1,23 @@
+{
+  "schemaVersion": "guardrail-fabric.trustops-preflight-handoff.v0.1",
+  "recordType": "TrustOpsPreflightHandoff",
+  "handoff_id": "trustops-preflight-handoff:alpha-block-001",
+  "source_system": "SocioProphet/guardrail-fabric",
+  "consumer_system": "SocioProphet/agentplane",
+  "source_receipt_id": "trustops-receipt:safety-preflight-alpha-block-001",
+  "outcome": "block",
+  "runtime_action": "block",
+  "gate_ids": [
+    "gate://trustops/safety-preflight/command-blocked"
+  ],
+  "evidence_refs": [
+    "evidence://trustops/safety-preflight/command/recursive_force_delete"
+  ],
+  "reason": "Mapped TrustOps outcome 'block' to runtime action 'block' using the monotonic provider-neutral translation table.",
+  "agentplane_projection": {
+    "outcome": "block",
+    "runtime_action": "block",
+    "authoritative_safety_owner": "SocioProphet/guardrail-fabric",
+    "handoff_ref": "trustops-preflight-handoff:alpha-block-001"
+  }
+}
