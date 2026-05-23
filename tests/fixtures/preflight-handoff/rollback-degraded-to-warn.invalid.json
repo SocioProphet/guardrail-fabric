@@ -1,0 +1,23 @@
+{
+  "schemaVersion": "guardrail-fabric.trustops-preflight-handoff.v0.1",
+  "recordType": "TrustOpsPreflightHandoff",
+  "handoff_id": "trustops-preflight-handoff:alpha-invalid-rollback-warn",
+  "source_system": "SocioProphet/guardrail-fabric",
+  "consumer_system": "SocioProphet/agentplane",
+  "source_receipt_id": "trustops-receipt:safety-preflight-alpha-rollback-001",
+  "outcome": "rollback",
+  "runtime_action": "warn",
+  "gate_ids": [
+    "gate://trustops/safety-preflight/rollback-required"
+  ],
+  "evidence_refs": [
+    "evidence://trustops/safety-preflight/rollback-required"
+  ],
+  "reason": "Invalid fixture: rollback must not silently degrade to warn.",
+  "agentplane_projection": {
+    "outcome": "rollback",
+    "runtime_action": "warn",
+    "authoritative_safety_owner": "SocioProphet/guardrail-fabric",
+    "handoff_ref": "trustops-preflight-handoff:alpha-invalid-rollback-warn"
+  }
+}
