@@ -1,0 +1,23 @@
+{
+  "schemaVersion": "guardrail-fabric.trustops-preflight-handoff.v0.1",
+  "recordType": "TrustOpsPreflightHandoff",
+  "handoff_id": "trustops-preflight-handoff:alpha-review-001",
+  "source_system": "SocioProphet/guardrail-fabric",
+  "consumer_system": "SocioProphet/agentplane",
+  "source_receipt_id": "trustops-receipt:safety-preflight-alpha-review-001",
+  "outcome": "require-review",
+  "runtime_action": "require-review",
+  "gate_ids": [
+    "gate://trustops/safety-preflight/dependency-approval-required"
+  ],
+  "evidence_refs": [
+    "evidence://trustops/safety-preflight/dependency-approval/package.json"
+  ],
+  "reason": "Mapped TrustOps outcome 'require-review' to runtime action 'require-review' using the monotonic provider-neutral translation table.",
+  "agentplane_projection": {
+    "outcome": "require-review",
+    "runtime_action": "require-review",
+    "authoritative_safety_owner": "SocioProphet/guardrail-fabric",
+    "handoff_ref": "trustops-preflight-handoff:alpha-review-001"
+  }
+}
