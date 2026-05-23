@@ -27,6 +27,15 @@ from .decision import (
 )
 from .log import append_decision, default_decision_log_path
 from .policies import BaselinePolicy, PolicyContext, baseline_policies, evaluate_baseline
+from .preflight_handoff import (
+    AGENTPLANE_CONSUMER,
+    SAFETY_OWNER,
+    SCHEMA_VERSION as PREFLIGHT_HANDOFF_SCHEMA_VERSION,
+    TrustOpsPreflightHandoff,
+    TrustOpsPreflightHandoffError,
+    build_preflight_handoff,
+    build_preflight_handoff_dict,
+)
 from .safety_preflight import (
     NetworkMode,
     SafetyPreflightDecision,
@@ -48,6 +57,7 @@ from .trustops_runtime_actions import (
 
 __all__ = [
     "ACTION_PRECEDENCE",
+    "AGENTPLANE_CONSUMER",
     "ActionAdmissionPolicy",
     "ActionClass",
     "AdmissionActionClass",
@@ -63,6 +73,7 @@ __all__ = [
     "EvidenceSufficiencyRule",
     "NetworkMode",
     "OUTCOME_PRECEDENCE",
+    "PREFLIGHT_HANDOFF_SCHEMA_VERSION",
     "PolicyContext",
     "PolicyDecision",
     "ProvisionalAdmission",
@@ -70,6 +81,7 @@ __all__ = [
     "Revocation",
     "RuntimeGuardrailAction",
     "RuntimeGuardrailDecision",
+    "SAFETY_OWNER",
     "SafetyPreflightDecision",
     "SafetyPreflightViolation",
     "SafetyViolationKind",
@@ -78,8 +90,12 @@ __all__ = [
     "TrustOpsGateDecision",
     "TrustOpsMappingError",
     "TrustOpsOutcome",
+    "TrustOpsPreflightHandoff",
+    "TrustOpsPreflightHandoffError",
     "append_decision",
     "baseline_policies",
+    "build_preflight_handoff",
+    "build_preflight_handoff_dict",
     "decision_from_event",
     "default_action_policies",
     "default_claim_policies",
