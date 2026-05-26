@@ -1,6 +1,6 @@
-.PHONY: validate test emit-demo-decision release-dry-run validate-superconscious-reasoning-policy validate-preflight-handoff
+.PHONY: validate test emit-demo-decision release-dry-run validate-superconscious-reasoning-policy validate-preflight-handoff validate-trustops-guardrail-action-decision
 
-validate: validate-superconscious-reasoning-policy validate-preflight-handoff
+validate: validate-superconscious-reasoning-policy validate-preflight-handoff validate-trustops-guardrail-action-decision
 	python3 tools/validate_guardrail_examples.py
 
 validate-superconscious-reasoning-policy:
@@ -17,6 +17,15 @@ validate-preflight-handoff:
 	python3 tools/validate_preflight_handoff.py tests/fixtures/preflight-handoff/block.valid.json
 	! python3 tools/validate_preflight_handoff.py tests/fixtures/preflight-handoff/rollback-degraded-to-warn.invalid.json
 	! python3 tools/validate_preflight_handoff.py tests/fixtures/preflight-handoff/quarantine-missing-evidence.invalid.json
+
+validate-trustops-guardrail-action-decision:
+	python3 -m json.tool schemas/trustops-guardrail-action-decision.v0.1.schema.json >/dev/null
+	python3 -m json.tool tests/fixtures/trustops-guardrail-action-decision/block.valid.json >/dev/null
+	python3 -m json.tool tests/fixtures/trustops-guardrail-action-decision/authority-mutated.invalid.json >/dev/null
+	python3 -m json.tool tests/fixtures/trustops-guardrail-action-decision/rollback-degraded-to-warn.invalid.json >/dev/null
+	python3 tools/validate_trustops_guardrail_action_decision.py tests/fixtures/trustops-guardrail-action-decision/block.valid.json
+	! python3 tools/validate_trustops_guardrail_action_decision.py tests/fixtures/trustops-guardrail-action-decision/authority-mutated.invalid.json
+	! python3 tools/validate_trustops_guardrail_action_decision.py tests/fixtures/trustops-guardrail-action-decision/rollback-degraded-to-warn.invalid.json
 
 test:
 	python3 -m pytest -q tools/tests

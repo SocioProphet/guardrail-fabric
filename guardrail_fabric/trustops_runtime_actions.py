@@ -17,6 +17,11 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Iterable
 
+SAFETY_OWNER = "SocioProphet/guardrail-fabric"
+AGENT_REGISTRY_OWNER = "SocioProphet/agent-registry"
+SCHEMA_VERSION = "guardrail-fabric.trustops-guardrail-action-decision.v0.1"
+RECORD_TYPE = "TrustOpsGuardrailActionDecision"
+
 
 class TrustOpsOutcome(str, Enum):
     """Canonical TrustOps receipt outcomes ordered by runtime severity."""
@@ -73,6 +78,20 @@ DEFAULT_ACTION_FOR_OUTCOME: dict[TrustOpsOutcome, RuntimeGuardrailAction] = {
     TrustOpsOutcome.ROLLBACK: RuntimeGuardrailAction.ROLLBACK,
     TrustOpsOutcome.REVOKE: RuntimeGuardrailAction.REVOKE,
 }
+
+
+def downstream_authority_intent(action: RuntimeGuardrailAction) -> str:
+    """Return the authority intent without mutating authority state."""
+
+    return {
+        RuntimeGuardrailAction.ALLOW: "none",
+        RuntimeGuardrailAction.WARN: "none",
+        RuntimeGuardrailAction.REQUIRE_REVIEW: "requires-agent-registry-decision",
+        RuntimeGuardrailAction.QUARANTINE: "requires-agent-registry-decision",
+        RuntimeGuardrailAction.BLOCK: "requires-agent-registry-decision",
+        RuntimeGuardrailAction.ROLLBACK: "requires-agent-registry-decision",
+        RuntimeGuardrailAction.REVOKE: "requires-agent-registry-decision",
+    }[action]
 
 
 class TrustOpsMappingError(ValueError):
@@ -154,6 +173,56 @@ class RuntimeGuardrailDecision:
         return data
 
 
+@dataclass(frozen=True)
+class TrustOpsGuardrailActionDecision:
+    """Guardrail Fabric-owned runtime control decision record.
+
+    This record is a runtime-control decision, not an Agent Registry authority
+    mutation. If authority should change, the record exposes downstream intent
+    and evidence refs for Agent Registry to evaluate separately.
+    """
+
+    decision_id: str
+    runtime_decision: RuntimeGuardrailDecision
+    issued_at: str
+    policy_refs: tuple[str, ...]
+    source_system: str = SAFETY_OWNER
+    authority_plane: str = AGENT_REGISTRY_OWNER
+
+    def to_agentplane_projection(self) -> dict[str, str]:
+        return {
+            "outcome": self.runtime_decision.controlling_outcome.value,
+            "runtime_action": self.runtime_decision.action.value,
+            "authoritative_safety_owner": self.source_system,
+            "guardrail_action_ref": self.decision_id,
+        }
+
+    def to_dict(self) -> dict[str, Any]:
+        data: dict[str, Any] = {
+            "schemaVersion": SCHEMA_VERSION,
+            "recordType": RECORD_TYPE,
+            "decision_id": self.decision_id,
+            "source_system": self.source_system,
+            "controlling_outcome": self.runtime_decision.controlling_outcome.value,
+            "runtime_action": self.runtime_decision.action.value,
+            "receipt_ids": list(self.runtime_decision.receipt_ids),
+            "gate_ids": list(self.runtime_decision.gate_ids),
+            "evidence_refs": list(self.runtime_decision.evidence_refs),
+            "policy_refs": list(self.policy_refs),
+            "reason": self.runtime_decision.reason,
+            "issued_at": self.issued_at,
+            "authority_mutation": {
+                "performed": False,
+                "authority_plane": self.authority_plane,
+                "downstream_intent": downstream_authority_intent(self.runtime_decision.action),
+            },
+            "agentplane_projection": self.to_agentplane_projection(),
+        }
+        if self.runtime_decision.fallback_reason is not None:
+            data["fallback_reason"] = self.runtime_decision.fallback_reason
+        return data
+
+
 def map_trustops_to_runtime_action(
     decisions: Iterable[TrustOpsGateDecision | dict[str, Any]],
     *,
@@ -212,6 +281,58 @@ def map_trustops_to_runtime_action(
         ),
         fallback_reason=fallback_reason,
     )
+
+
+def build_guardrail_action_decision(
+    decisions: Iterable[TrustOpsGateDecision | dict[str, Any]],
+    *,
+    decision_id: str,
+    issued_at: str,
+    policy_refs: Iterable[str],
+    rollback_supported: bool = True,
+) -> TrustOpsGuardrailActionDecision:
+    """Build a Guardrail Fabric-owned runtime-control decision record."""
+
+    runtime_decision = map_trustops_to_runtime_action(
+        decisions,
+        rollback_supported=rollback_supported,
+    )
+    policy_tuple = tuple(policy_refs)
+    if not decision_id:
+        raise TrustOpsMappingError("decision_id is required")
+    if not issued_at:
+        raise TrustOpsMappingError("issued_at is required")
+    if not policy_tuple:
+        raise TrustOpsMappingError("policy_refs are required")
+    if not runtime_decision.gate_ids:
+        raise TrustOpsMappingError("guardrail action decision requires gate_ids")
+    if not runtime_decision.evidence_refs:
+        raise TrustOpsMappingError("guardrail action decision requires evidence_refs")
+    return TrustOpsGuardrailActionDecision(
+        decision_id=decision_id,
+        runtime_decision=runtime_decision,
+        issued_at=issued_at,
+        policy_refs=policy_tuple,
+    )
+
+
+def build_guardrail_action_decision_dict(
+    decisions: Iterable[TrustOpsGateDecision | dict[str, Any]],
+    *,
+    decision_id: str,
+    issued_at: str,
+    policy_refs: Iterable[str],
+    rollback_supported: bool = True,
+) -> dict[str, Any]:
+    """Build and serialize a Guardrail Fabric runtime-control decision."""
+
+    return build_guardrail_action_decision(
+        decisions,
+        decision_id=decision_id,
+        issued_at=issued_at,
+        policy_refs=policy_refs,
+        rollback_supported=rollback_supported,
+    ).to_dict()
 
 
 def _normalize_decision(

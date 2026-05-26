@@ -1,0 +1,29 @@
+{
+  "schemaVersion": "guardrail-fabric.trustops-guardrail-action-decision.v0.1",
+  "recordType": "TrustOpsGuardrailActionDecision",
+  "decision_id": "trustops-guardrail-action-decision:authority-mutated-invalid",
+  "source_system": "SocioProphet/guardrail-fabric",
+  "controlling_outcome": "block",
+  "runtime_action": "block",
+  "receipt_ids": ["trustops-receipt:block-001"],
+  "gate_ids": ["gate://trustops/privacy-leakage"],
+  "evidence_refs": ["evidence://trustops/privacy-leakage/trace-001"],
+  "policy_refs": ["policy://trustops/runtime-action-v0.1"],
+  "reason": "Invalid fixture: Guardrail Fabric must not mutate Agent Registry authority state directly.",
+  "issued_at": "2026-05-26T20:51:00Z",
+  "authority_mutation": {
+    "performed": true,
+    "authority_plane": "SocioProphet/agent-registry",
+    "downstream_intent": "requires-agent-registry-decision"
+  },
+  "agentplane_projection": {
+    "outcome": "block",
+    "runtime_action": "block",
+    "authoritative_safety_owner": "SocioProphet/guardrail-fabric",
+    "guardrail_action_ref": "trustops-guardrail-action-decision:authority-mutated-invalid"
+  },
+  "labels": {
+    "issue": "SocioProphet/guardrail-fabric#13",
+    "fixture": "authority-mutated-invalid"
+  }
+}
