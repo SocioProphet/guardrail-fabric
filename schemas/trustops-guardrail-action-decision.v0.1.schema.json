@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.socioprophet.org/guardrail-fabric/trustops-guardrail-action-decision.v0.1.schema.json",
+  "title": "TrustOpsGuardrailActionDecision v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "recordType",
+    "decision_id",
+    "source_system",
+    "controlling_outcome",
+    "runtime_action",
+    "receipt_ids",
+    "gate_ids",
+    "evidence_refs",
+    "policy_refs",
+    "reason",
+    "issued_at",
+    "authority_mutation",
+    "agentplane_projection"
+  ],
+  "properties": {
+    "schemaVersion": {"const": "guardrail-fabric.trustops-guardrail-action-decision.v0.1"},
+    "recordType": {"const": "TrustOpsGuardrailActionDecision"},
+    "decision_id": {"type": "string", "minLength": 1},
+    "source_system": {"const": "SocioProphet/guardrail-fabric"},
+    "controlling_outcome": {
+      "type": "string",
+      "enum": ["pass", "warn", "require-review", "quarantine", "block", "rollback", "revoke"]
+    },
+    "runtime_action": {
+      "type": "string",
+      "enum": ["allow", "warn", "require-review", "quarantine", "block", "rollback", "revoke"]
+    },
+    "receipt_ids": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"type": "string", "minLength": 1},
+      "uniqueItems": true
+    },
+    "gate_ids": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"type": "string", "minLength": 1},
+      "uniqueItems": true
+    },
+    "evidence_refs": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"type": "string", "minLength": 1},
+      "uniqueItems": true
+    },
+    "policy_refs": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"type": "string", "minLength": 1},
+      "uniqueItems": true
+    },
+    "reason": {"type": "string", "minLength": 1},
+    "fallback_reason": {"type": "string", "minLength": 1},
+    "issued_at": {"type": "string", "minLength": 1},
+    "authority_mutation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["performed", "authority_plane", "downstream_intent"],
+      "properties": {
+        "performed": {"const": false},
+        "authority_plane": {"const": "SocioProphet/agent-registry"},
+        "downstream_intent": {
+          "type": "string",
+          "enum": ["none", "requires-agent-registry-decision"]
+        }
+      }
+    },
+    "agentplane_projection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["outcome", "runtime_action", "authoritative_safety_owner", "guardrail_action_ref"],
+      "properties": {
+        "outcome": {"type": "string", "minLength": 1},
+        "runtime_action": {"type": "string", "minLength": 1},
+        "authoritative_safety_owner": {"const": "SocioProphet/guardrail-fabric"},
+        "guardrail_action_ref": {"type": "string", "minLength": 1}
+      }
+    },
+    "labels": {"type": "object", "additionalProperties": {"type": "string"}}
+  }
+}
