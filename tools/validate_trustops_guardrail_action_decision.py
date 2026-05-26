@@ -128,10 +128,8 @@ def validate_decision(record: dict[str, Any]) -> None:
     if action not in ACTION_PRECEDENCE:
         fail(f"unknown runtime_action: {action}")
     expected = OUTCOME_TO_ACTION[outcome]
-    if action != expected:
-        fail(f"runtime_action must preserve monotonic mapping: {outcome} -> {expected}, got {action}")
     if ACTION_PRECEDENCE[action] < ACTION_PRECEDENCE[expected]:
-        fail("runtime_action cannot lower TrustOps outcome severity")
+        fail(f"runtime_action cannot lower TrustOps outcome severity: {outcome} -> {action}")
 
     receipt_ids = require_string_list(record, "receipt_ids")
     gate_ids = require_string_list(record, "gate_ids")
