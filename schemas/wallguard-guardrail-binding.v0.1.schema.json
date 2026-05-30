@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.socioprophet.org/guardrail-fabric/wallguard-guardrail-binding.v0.1.schema.json",
+  "title": "WallGuard Guardrail Binding v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "recordType",
+    "binding_id",
+    "source_system",
+    "surface",
+    "wall_decision_ref",
+    "wall_decision_outcome",
+    "guardrail_action",
+    "resource_refs",
+    "destination_ref",
+    "policy_refs",
+    "receipt_refs",
+    "issued_at",
+    "authority_mutation"
+  ],
+  "properties": {
+    "schemaVersion": {"const": "guardrail-fabric.wallguard-guardrail-binding.v0.1"},
+    "recordType": {"const": "WallGuardGuardrailBinding"},
+    "binding_id": {"type": "string", "minLength": 1},
+    "source_system": {"const": "SocioProphet/guardrail-fabric"},
+    "surface": {"enum": ["model_invocation", "tool_invocation", "rag_context", "connector_call", "artifact_export", "prompt_assembly"]},
+    "wall_decision_ref": {"type": "string", "minLength": 1},
+    "wall_decision_outcome": {"enum": ["allow", "deny", "redact", "quarantine", "escalate", "clean_room_release_requested", "clean_room_release_allowed", "clean_room_release_denied"]},
+    "guardrail_action": {"enum": ["allow", "deny", "redact", "quarantine", "escalate", "clean_room_release"]},
+    "resource_refs": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+    "destination_ref": {"type": "string", "minLength": 1},
+    "policy_refs": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+    "receipt_refs": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+    "reason": {"type": "string"},
+    "issued_at": {"type": "string", "minLength": 1},
+    "authority_mutation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["performed", "authority_plane", "downstream_intent"],
+      "properties": {
+        "performed": {"const": false},
+        "authority_plane": {"const": "SocioProphet/agent-registry"},
+        "downstream_intent": {"enum": ["none", "requires-agent-registry-decision"]}
+      }
+    }
+  }
+}

@@ -1,6 +1,6 @@
-.PHONY: validate test emit-demo-decision release-dry-run validate-superconscious-reasoning-policy validate-preflight-handoff validate-trustops-guardrail-action-decision
+.PHONY: validate test emit-demo-decision release-dry-run validate-superconscious-reasoning-policy validate-preflight-handoff validate-trustops-guardrail-action-decision validate-wallguard-guardrail-binding
 
-validate: validate-superconscious-reasoning-policy validate-preflight-handoff validate-trustops-guardrail-action-decision
+validate: validate-superconscious-reasoning-policy validate-preflight-handoff validate-trustops-guardrail-action-decision validate-wallguard-guardrail-binding
 	python3 tools/validate_guardrail_examples.py
 
 validate-superconscious-reasoning-policy:
@@ -26,6 +26,14 @@ validate-trustops-guardrail-action-decision:
 	python3 tools/validate_trustops_guardrail_action_decision.py tests/fixtures/trustops-guardrail-action-decision/block.valid.json
 	! python3 tools/validate_trustops_guardrail_action_decision.py tests/fixtures/trustops-guardrail-action-decision/authority-mutated.invalid.json
 	! python3 tools/validate_trustops_guardrail_action_decision.py tests/fixtures/trustops-guardrail-action-decision/rollback-degraded-to-warn.invalid.json
+
+validate-wallguard-guardrail-binding:
+	python3 -m json.tool schemas/wallguard-guardrail-binding.v0.1.schema.json >/dev/null
+	python3 -m json.tool tests/fixtures/wallguard-guardrail-binding/allow.valid.json >/dev/null
+	python3 -m json.tool tests/fixtures/wallguard-guardrail-binding/deny-degraded-to-allow.invalid.json >/dev/null
+	python3 -m json.tool tests/fixtures/wallguard-guardrail-binding/authority-mutated.invalid.json >/dev/null
+	python3 tools/validate_wallguard_guardrail_binding.py
+
 
 test:
 	python3 -m pytest -q tools/tests
