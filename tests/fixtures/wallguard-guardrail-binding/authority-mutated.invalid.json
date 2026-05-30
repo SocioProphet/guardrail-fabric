@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "guardrail-fabric.wallguard-guardrail-binding.v0.1",
+  "recordType": "WallGuardGuardrailBinding",
+  "binding_id": "wallguard-guardrail-binding:authority-mutated-invalid-001",
+  "source_system": "SocioProphet/guardrail-fabric",
+  "surface": "model_invocation",
+  "wall_decision_ref": "wallguard-decision://model-quarantine-001",
+  "wall_decision_outcome": "quarantine",
+  "guardrail_action": "quarantine",
+  "resource_refs": ["resource://client-a/matter-x/prompt-context-001"],
+  "destination_ref": "model://hosted-provider/example",
+  "policy_refs": ["policy-fabric://wallguard.professional-workroom.v0"],
+  "receipt_refs": ["wallguard-receipt://model-quarantine-001"],
+  "reason": "intentionally invalid: guardrail fabric records direct authority mutation",
+  "issued_at": "2026-05-30T00:00:00Z",
+  "authority_mutation": {
+    "performed": true,
+    "authority_plane": "SocioProphet/agent-registry",
+    "downstream_intent": "requires-agent-registry-decision"
+  }
+}
