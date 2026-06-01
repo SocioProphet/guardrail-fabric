@@ -1,0 +1,36 @@
+{
+  "schema": "sourceos.guardrail.decision.v0.1",
+  "decisionId": "guardrail:decision:trust-chain-runtime-allow-001",
+  "timestamp": "2026-06-01T00:00:00Z",
+  "policyId": "trust-chain/runtime-asset-admission",
+  "policyVersion": "0.1.0",
+  "policyHash": null,
+  "scope": "runtime",
+  "severity": "info",
+  "decision": "allow",
+  "reason": "RuntimeAsset Trust Chain evidence satisfies preview admission policy for the requested scope.",
+  "remediation": "No remediation required for this preview admission scope.",
+  "evidence": {
+    "actionClass": "runtime",
+    "artifactType": "RuntimeAsset",
+    "artifactRef": "runtime-asset://lattice-forge/prophet-python-ml@0.1.0",
+    "policyProfileRef": "policy://trust-chain/dependency-admission/regulated-enterprise-preview",
+    "admissionDecisionRef": "trust-chain:admit-artifact-response:demo-runtime-asset-001:allowed",
+    "sbomRef": "sbom://lattice-forge/prophet-python-ml/0.1.0/spdx.json",
+    "vexRef": "vex://lattice-forge/prophet-python-ml/0.1.0/vex.json",
+    "lockfileRef": "lockfile://lattice-forge/prophet-python-ml/0.1.0/flake.lock",
+    "signatureRef": "sigstore://lattice-forge/prophet-python-ml/0.1.0/bundle.sigstore",
+    "scanRecordRef": "scan://lattice-forge/prophet-python-ml/0.1.0/osv-scan.json",
+    "vulnerabilityPosture": "no_known_blocking_findings",
+    "patchPosture": "current_for_scope",
+    "sourceChannelTrust": "trusted",
+    "promotionPosture": "preview_allowed"
+  },
+  "effects": {
+    "agentMayContinue": true,
+    "requiresHumanApproval": false,
+    "redacted": false,
+    "logsRequired": true,
+    "tamperSealRequired": true
+  }
+}
