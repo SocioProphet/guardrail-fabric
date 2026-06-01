@@ -1,0 +1,38 @@
+{
+  "schema": "sourceos.guardrail.decision.v0.1",
+  "decisionId": "guardrail:decision:trust-chain-runtime-deny-001",
+  "timestamp": "2026-06-01T00:00:00Z",
+  "policyId": "trust-chain/runtime-asset-admission",
+  "policyVersion": "0.1.0",
+  "policyHash": null,
+  "scope": "runtime",
+  "severity": "critical",
+  "decision": "deny",
+  "reason": "RuntimeAsset production admission is denied because required Trust Chain evidence is missing or posture is blocked.",
+  "remediation": "Patch or replace the runtime asset, emit updated SBOM/VEX/signature/scan evidence, rerun AgentPlane validation, and request a fresh admission decision before production use.",
+  "evidence": {
+    "actionClass": "runtime",
+    "artifactType": "RuntimeAsset",
+    "artifactRef": "runtime-asset://lattice-forge/legacy-python-ml@0.0.3",
+    "policyProfileRef": "policy://trust-chain/dependency-admission/regulated-enterprise-production",
+    "admissionDecisionRef": "trust-chain:admit-artifact-response:legacy-python-ml:denied",
+    "sbomRef": "sbom://lattice-forge/legacy-python-ml/0.0.3/spdx.json",
+    "vexRef": null,
+    "lockfileRef": "lockfile://lattice-forge/legacy-python-ml/0.0.3/flake.lock",
+    "signatureRef": "sigstore://lattice-forge/legacy-python-ml/0.0.3/bundle.sigstore",
+    "scanRecordRef": "scan://lattice-forge/legacy-python-ml/0.0.3/osv-scan.json",
+    "agentplaneValidationRef": null,
+    "runtimeReceiptRef": null,
+    "vulnerabilityPosture": "known_blocking_findings",
+    "patchPosture": "patch_required",
+    "sourceChannelTrust": "mixed",
+    "promotionPosture": "production_denied"
+  },
+  "effects": {
+    "agentMayContinue": false,
+    "requiresHumanApproval": true,
+    "redacted": false,
+    "logsRequired": true,
+    "tamperSealRequired": true
+  }
+}
