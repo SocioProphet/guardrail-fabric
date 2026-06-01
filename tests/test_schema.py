@@ -5,8 +5,13 @@ from pathlib import Path
 
 from guardrail_fabric import ActionClass, Decision, decision_from_event
 
+from tools.validate_trust_chain_runtime_admission import main as validate_trust_chain_runtime_admission
 
-SCHEMA_PATH = Path(__file__).resolve().parents[1] / "schemas" / "sourceos.guardrail.decision.v0.1.schema.json"
+
+ROOT = Path(__file__).resolve().parents[1]
+SCHEMA_PATH = ROOT / "schemas" / "sourceos.guardrail.decision.v0.1.schema.json"
+TRUST_CHAIN_ALLOW = ROOT / "examples" / "trust-chain" / "runtime-asset-admission.allow.json"
+TRUST_CHAIN_DENY = ROOT / "examples" / "trust-chain" / "runtime-asset-admission.deny.json"
 
 
 def test_schema_file_loads_and_declares_required_fields() -> None:
@@ -46,3 +51,26 @@ def test_decision_artifact_matches_schema_enums() -> None:
     assert artifact["severity"] in schema["properties"]["severity"]["enum"]
     assert artifact["evidence"]["actionClass"] in schema["properties"]["evidence"]["properties"]["actionClass"]["enum"]
     assert artifact["decision"] == Decision.ALLOW.value
+
+
+def test_trust_chain_runtime_admission_fixtures_validate() -> None:
+    assert validate_trust_chain_runtime_admission() == 0
+
+
+def test_trust_chain_allow_fixture_permits_agent_continuation() -> None:
+    fixture = json.loads(TRUST_CHAIN_ALLOW.read_text(encoding="utf-8"))
+    assert fixture["decision"] == "allow"
+    assert fixture["evidence"]["actionClass"] == "runtime"
+    assert fixture["evidence"]["artifactType"] == "RuntimeAsset"
+    assert fixture["effects"]["agentMayContinue"] is True
+    assert fixture["effects"]["requiresHumanApproval"] is False
+
+
+def test_trust_chain_deny_fixture_stops_agent_continuation() -> None:
+    fixture = json.loads(TRUST_CHAIN_DENY.read_text(encoding="utf-8"))
+    assert fixture["decision"] == "deny"
+    assert fixture["evidence"]["actionClass"] == "runtime"
+    assert fixture["evidence"]["artifactType"] == "RuntimeAsset"
+    assert fixture["evidence"]["promotionPosture"] == "production_denied"
+    assert fixture["effects"]["agentMayContinue"] is False
+    assert fixture["effects"]["requiresHumanApproval"] is True
