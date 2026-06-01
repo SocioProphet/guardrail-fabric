@@ -20,6 +20,8 @@ jobs:
       - name: Install package and test runner
         run: |
           python -m pip install --upgrade pip
-          python -m pip install -e . pytest
+          python -m pip install -e . pytest jsonschema==4.23.0
       - name: Run tests
         run: pytest -q
+      - name: Validate DevSecOps Workroom adversarial AIOps fixtures
+        run: python scripts/validate_devsecops_workroom_adversarial_aiops.py
