@@ -149,9 +149,57 @@ guardrail-fabric \
 ## Run tests
 
 ```bash
-python -m pip install -e . pytest
+python -m pip install -e . pytest jsonschema
 pytest -q
+python tools/validate_trust_chain_runtime_admission.py
 ```
+
+## Prophet Trust Chain runtime admission
+
+Guardrail Fabric owns the deterministic runtime/action-admission slice of Prophet Trust Chain. The platform standard and admission contract live in `SocioProphet/prophet-platform`:
+
+- `docs/standards/PROPHET_TRUST_CHAIN_V0.md`
+- `docs/TRUST_CHAIN_ADMISSION_CONTRACT.md`
+- `docs/standards/PROPHET_TRUST_CHAIN_IMPLEMENTATION_MAP.md`
+
+The first Guardrail slice consumes `RuntimeAsset` Trust Chain evidence and emits `sourceos.guardrail.decision.v0.1`-compatible decisions.
+
+Relevant files:
+
+- `examples/trust-chain/runtime-asset-admission.allow.json`
+- `examples/trust-chain/runtime-asset-admission.deny.json`
+- `tools/validate_trust_chain_runtime_admission.py`
+- `tests/test_schema.py`
+- `schemas/sourceos.guardrail.decision.v0.1.schema.json`
+
+Validation:
+
+```bash
+python tools/validate_trust_chain_runtime_admission.py
+pytest -q tests/test_schema.py
+```
+
+Allow path requirements:
+
+- runtime action class;
+- `RuntimeAsset` artifact type;
+- SBOM, VEX, lockfile, signature, scan, policy profile, and admission-decision refs;
+- no known blocking findings;
+- current-for-scope patch posture;
+- trusted source-channel posture;
+- agent continuation allowed without human approval.
+
+Deny path requirements:
+
+- runtime action class;
+- `RuntimeAsset` artifact type;
+- known blocking findings or equivalent blocked posture;
+- patch required;
+- production denied posture;
+- agent continuation stopped;
+- human approval required.
+
+Boundary: Guardrail Fabric enforces runtime/action admission decisions and records compatible decision artifacts. It does not perform live scanning, certify runtime production readiness by itself, mutate infrastructure directly, or replace Lattice Forge, Policy Fabric, AgentPlane, Model Governance Ledger, or Prophet Platform admission authority.
 
 ## Governed-intelligence claim/action admission
 
