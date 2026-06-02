@@ -1,0 +1,35 @@
+schema_version: effective-authority/v0.1
+repo: SocioProphet/guardrail-fabric
+zone: C
+owner: Guardrail Fabric enforcement lane
+maturity: draft
+
+authority_classes:
+  - guardrail_enforcement
+  - fail_closed_policy
+  - tool_grant_policy
+  - runtime_permission_gate
+observation_channels: []
+control_channels:
+  - mcp
+  - agent_to_agent
+egress_classes:
+  - policy
+  - metadata
+  - tool_input
+  - tool_output
+background_workers: []
+runtime_subjects:
+  - native_process
+  - agent_worker
+connector_surfaces: []
+policy_sources:
+  - repo
+  - signed_config
+  - user_grant
+  - runtime_contract
+ledger_sinks:
+  - model-governance-ledger
+  - policy-fabric
+ci_validators:
+  - effective-authority-ci
