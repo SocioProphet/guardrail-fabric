@@ -36,6 +36,11 @@ This repository must not store secrets, private prompts, provider credentials, m
 
 The first implementation emits local deterministic JSON only.
 
+## v0.2 breaking-change policy
+
+See [`docs/v0.2-breaking-change-policy.md`](v0.2-breaking-change-policy.md) for the
+per-schema breaking-change rules, version-bump procedure, and current gate state.
+
 ## Validation
 
 ```bash
